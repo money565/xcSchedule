@@ -1,0 +1,22 @@
+{
+  "prettier.enable": false,
+  "octref.vetur": false,
+  "eslint.enable": true,
+  // "eslint.experimental.useFlatConfig": true,
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+  // 配置stylelint检查的文件类型范围
+  "stylelint.validate": ["css", "less", "postcss", "scss", "sass", "vue"],
+  "stylelint.enable": true,
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "i18n-ally.localesPaths": [
+    "src/locales",
+    "src/locales/lang"
+  ]
+}
