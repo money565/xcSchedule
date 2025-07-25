@@ -2,7 +2,7 @@ import axios from 'axios'
 import { baseURL, loginURL, TXURL } from '../webConfig'
 // import { Base64 } from "js-base64"
 export const request = axios.create({
-  baseURL:TXURL,
+  baseURL: TXURL,
   responseType: 'json',
   headers: {
     'Accept': 'application/json',

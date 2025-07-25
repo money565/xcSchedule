@@ -1,17 +1,215 @@
 <script lang="ts" setup>
-import { getWorkerByProject } from '@/axios/interface'
+import { changeWorker, getLaborContractChoices, getTypesChoices, getWorkerByProject } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
+import autoInputItem from './autoInputItem.vue'
+import createWorkerShow from './createWorker.vue'
+import { LaborContractChoices, typeChoiceList } from './item'
 
+interface workOpt {
+  id: number
+  name: string
+  gender: boolean
+  labor_contract: {
+    num: number
+    name: string
+  }
+  main_job: {
+    id: number
+    name: string
+  }
+  price: number
+  types: {
+    num: number
+    name: string
+  }
+  name_edit: boolean | undefined
+  gender_edit: boolean | undefined
+  types_edit: boolean | undefined
+  price_edit: boolean | undefined
+  lc_edit: boolean | undefined
+  job_edit: boolean | undefined
+}
 const acs = useAppCacheStore()
-const tableData = ref([])
-getWorkerByProject(acs.currentProject).then(({ data: res }) => {
-  console.log(res)
-  tableData.value = res.result
-})
+const tableData = ref <workOpt[]> ([])
+const TypesChoices = ref<{ label: string, value: number }[] | undefined>()
+const isEdit = ref<boolean>(false)
+const currentIndex = ref<number>(-1)
+const totalItem = ref<number>(0)
+const createWorkerDialog = ref(false)
+
+function init(start = 0, end = 15) {
+  getWorkerByProject(acs.currentProject, start, end).then(({ data: res }) => {
+    console.log(res)
+    totalItem.value = res.total
+    const temp = []
+    for (const i in res.result) {
+      temp.push({
+        id: res.result[i].id,
+        name: res.result[i].name,
+        gender: res.result[i].gender,
+        labor_contract: res.result[i].labor_contract,
+        main_job: res.result[i].main_job,
+        price: res.result[i].price,
+        types: res.result[i].types,
+        name_edit: false,
+        gender_edit: false,
+        types_edit: false,
+        price_edit: false,
+        lc_edit: false,
+        job_edit: false,
+      })
+    }
+    tableData.value = temp
+  })
+}
 
 function deleteWorker(index: number) {
   console.log('删除', index)
 }
+
+function resetEdit() {
+  for (const i in tableData.value) {
+    tableData.value[i].lc_edit = false
+    tableData.value[i].job_edit = false
+    tableData.value[i].name_edit = false
+    tableData.value[i].price_edit = false
+    tableData.value[i].types_edit = false
+    tableData.value[i].gender_edit = false
+  }
+}
+
+function editWork(target: string, index: number) {
+  let updata = false
+  let strValue
+  if (target === 'name') {
+    if (tableData.value[index].name_edit === true) {
+      strValue = tableData.value[index].name
+      tableData.value[index].name_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].name_edit = true
+      updata = false
+    }
+  }
+  if (target === 'price') {
+    if (tableData.value[index].price_edit === true) {
+      strValue = tableData.value[index].price
+      tableData.value[index].price_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].price_edit = true
+      updata = false
+    }
+  }
+
+  if (target === 'gender') {
+    if (tableData.value[index].gender_edit === true) {
+      strValue = tableData.value[index].gender
+      tableData.value[index].gender_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].gender_edit = true
+      updata = false
+    }
+  }
+
+  if (target === 'types') {
+    if (TypesChoices.value === undefined) {
+      getTypesChoices().then(({ data: res }) => {
+        typeChoiceList.value = res.result
+      })
+    }
+    if (tableData.value[index].types_edit === true) {
+      for (const i in typeChoiceList.value) {
+        if (tableData.value[index].types.num === typeChoiceList.value[Number(i)].value) {
+          tableData.value[index].types.name = typeChoiceList.value[Number(i)].label
+        }
+      }
+      strValue = tableData.value[index].types.num
+      tableData.value[index].types_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].types_edit = true
+      updata = false
+    }
+  }
+
+  if (target === 'LaborContract') {
+    if (LaborContractChoices.value === undefined) {
+      getLaborContractChoices().then(({ data: res }) => {
+        LaborContractChoices.value = res.result
+      })
+    }
+    if (tableData.value[index].lc_edit === true) {
+      for (const t in LaborContractChoices.value) {
+        if (tableData.value[index].labor_contract.num === LaborContractChoices.value[Number(t)].value) {
+          tableData.value[index].labor_contract.name = LaborContractChoices.value[Number(t)].label
+        }
+      }
+      strValue = tableData.value[index].labor_contract.num
+      tableData.value[index].lc_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].lc_edit = true
+      updata = false
+    }
+  }
+
+  if (target === 'job') {
+    currentIndex.value = index
+    if (tableData.value[index].job_edit === true) {
+      strValue = tableData.value[index].main_job.id
+      tableData.value[index].job_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].job_edit = true
+      updata = false
+    }
+  }
+
+  const params = {
+    wid: tableData.value[index].id,
+    strValue,
+    target,
+  }
+  if (updata) {
+    changeWorker(params)
+  }
+}
+
+function receiveMesg(value: any) {
+  tableData.value[currentIndex.value].main_job = {
+    id: value.link,
+    name: value.value,
+  }
+}
+
+function pageChange(page: number) {
+  const start = page * 15 - 15
+  const end = page * 15 - 1
+  console.log(start, end)
+  init(start, end)
+}
+
+function createWorker() {
+  createWorkerDialog.value = true
+}
+
+onMounted(() => {
+  init()
+})
 </script>
 
 <template>
@@ -21,16 +219,33 @@ function deleteWorker(index: number) {
         编辑员工信息
       </div>
     </div>
+    <div>
+      <div>
+        <el-button @click="isEdit = !isEdit">
+          {{ isEdit ? "编辑模式" : "浏览模式" }}
+        </el-button>
+        <el-button @click="createWorker">
+          新建
+        </el-button>
+      </div>
+    </div>
     <div class="mx-auto">
       <el-table :data="tableData" style="width: 100%">
+        <el-table-column label="序号" width="150" align="center">
+          <template #default="scoped">
+            <div>
+              {{ scoped.$index + 1 }}
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="姓名" width="200">
           <template #default="scoped">
-            <div v-if="!scoped.row.name_edit || scoped.row.name_edit === false" class="flex">
+            <div v-if="scoped.row.name_edit === false" class="flex">
               <div>
                 {{ scoped.row.name }}
               </div>
               <div>
-                <el-icon size="25" @click="scoped.row.name_edit = true">
+                <el-icon v-if="isEdit" size="25" @click="editWork('name', scoped.$index)">
                   <svg-icon name="edit" />
                 </el-icon>
               </div>
@@ -40,7 +255,7 @@ function deleteWorker(index: number) {
                 <el-input v-model="scoped.row.name" class="w-25" />
               </div>
               <div class="ml-3 mt-1">
-                <el-icon size="23" @click="scoped.row.name_edit = false">
+                <el-icon v-if="isEdit" size="23" @click="editWork('name', scoped.$index)">
                   <svg-icon name="ok" />
                 </el-icon>
               </div>
@@ -51,26 +266,142 @@ function deleteWorker(index: number) {
           <template #default="scoped">
             <div class="flex">
               <div>
-                <el-radio-group v-model="scoped.row.gender" :disabled="true">
-                  <el-radio :value="1" size="small">
+                <el-radio-group v-model="scoped.row.gender" :disabled="scoped.row.gender_edit === false ? true : false">
+                  <el-radio :value="true" size="small">
                     男
                   </el-radio>
-                  <el-radio :value="0" size="small">
+                  <el-radio :value="false" size="small">
                     女
                   </el-radio>
                 </el-radio-group>
               </div>
-              <div>
-                <el-icon size="25">
+              <div v-if="scoped.row.gender_edit === false">
+                <el-icon v-if="isEdit" size="25" @click="editWork('gender', scoped.$index)">
                   <svg-icon name="edit" />
+                </el-icon>
+              </div>
+              <div v-else>
+                <el-icon v-if="isEdit" size="25" @click="editWork('gender', scoped.$index)">
+                  <svg-icon name="ok" />
                 </el-icon>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="main_job.name" label="岗位" width="280" />
-        <el-table-column prop="price" label="工价" width="180" />
-        <el-table-column prop="types.name" label="合同" width="180" />
+        <el-table-column label="岗位" width="280">
+          <template #default="scoped">
+            <div v-if="scoped.row.job_edit === false" class="flex">
+              <div>
+                {{ scoped.row.main_job === null ? "" : scoped.row.main_job.name }}
+              </div>
+              <div>
+                <el-icon v-if="isEdit" size="25" @click="editWork('job', scoped.$index)">
+                  <svg-icon name="edit" />
+                </el-icon>
+              </div>
+            </div>
+            <div v-else class="flex">
+              <div>
+                <autoInputItem :title="scoped.row.main_job.name" @sent-mesg="receiveMesg" />
+              </div>
+              <div class="ml-3 mt-1">
+                <el-icon v-if="isEdit" size="23" @click="editWork('job', scoped.$index)">
+                  <svg-icon name="ok" />
+                </el-icon>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="工价" width="180">
+          <template #default="scoped">
+            <div v-if="scoped.row.price_edit === false" class="flex">
+              <div>
+                {{ scoped.row.price }}
+              </div>
+              <div>
+                <el-icon v-if="isEdit" size="25" @click="editWork('price', scoped.$index)">
+                  <svg-icon name="edit" />
+                </el-icon>
+              </div>
+            </div>
+            <div v-else class="flex">
+              <div>
+                <el-input v-model="scoped.row.price" class="w-25" />
+              </div>
+              <div class="ml-3 mt-1">
+                <el-icon v-if="isEdit" size="23" @click="editWork('price', scoped.$index)">
+                  <svg-icon name="ok" />
+                </el-icon>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="types.name" label="人员类型" width="210">
+          <template #default="scoped">
+            <div class="flex">
+              <div v-if="scoped.row.types_edit === false">
+                <div class="flex">
+                  <div>{{ scoped.row.types.name }}</div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('types', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else>
+                <div class="flex">
+                  <div>
+                    <el-select v-model="scoped.row.types.num" placeholder="Select" style="width: 80px">
+                      <el-option
+                        v-for="item in typeChoiceList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </div>
+                  <div class="mt-1 ml-2">
+                    <el-icon v-if="isEdit" size="22" @click="editWork('types', scoped.$index)">
+                      <svg-icon name="ok" />
+                    </el-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="labor_contract.name" label="合同" width="180">
+          <template #default="scoped">
+            <div class="flex">
+              <div v-if="scoped.row.lc_edit === false">
+                <div class="flex">
+                  <div>{{ scoped.row.labor_contract.name }}</div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('LaborContract', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else>
+                <div class="flex">
+                  <div>
+                    <el-select v-model="scoped.row.labor_contract.num" placeholder="Select" style="width: 80px">
+                      <el-option
+                        v-for="item in LaborContractChoices"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </div>
+                  <div class="mt-1 ml-2">
+                    <el-icon v-if="isEdit" size="22" @click="editWork('LaborContract', scoped.$index)">
+                      <svg-icon name="ok" />
+                    </el-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="scoped">
             <div>
@@ -82,5 +413,18 @@ function deleteWorker(index: number) {
         </el-table-column>
       </el-table>
     </div>
+    <div>
+      <el-pagination
+        layout="prev, pager, next"
+        :total="totalItem"
+        :page-size="15"
+        @change="pageChange"
+      />
+    </div>
+    <XtDialog v-model="createWorkerDialog" title="新建员工">
+      <div>
+        <createWorkerShow />
+      </div>
+    </XtDialog>
   </div>
 </template>

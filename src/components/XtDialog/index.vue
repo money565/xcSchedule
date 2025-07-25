@@ -3,22 +3,28 @@ interface IProps {
   loading?: boolean
   showCancel?: boolean
   showConfirm?: boolean
+  showClose?: boolean
   cancelButtonText?: string
   confirmButtonText?: string
   width?: string
+  title?: string
+  dialogTop?: string
 }
 
 defineOptions({
   name: 'XtDialog',
 })
 
-withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<IProps>(), {
   loading: false,
   showCancel: true,
   showConfirm: true,
   cancelButtonText: '取消',
   confirmButtonText: '确定',
   width: '500',
+  title: '',
+  dialogTop: '10vh',
+  showClose: true,
 })
 
 const emits = defineEmits(['cancel', 'confirm'])
@@ -37,13 +43,22 @@ function handleConfirm() {
 <template>
   <el-dialog
     v-model="model"
-    class="xt-base-dialog"
+    :lock-scroll="false"
+    :destroy-on-close="true"
+    class="xt-base-dialog rounded-md"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
     v-bind="$attrs"
     :width="width"
+    :top="props.dialogTop"
+    :show-close="props.showClose"
   >
-    <slot name="content" />
+    <template #header>
+      <div class="p-3 ml--4 mt--4 mr--12 bg-[linear-gradient(45deg,#1E90FF,#00BFFF)] font-600 text-white rounded-t-md">
+        <span>{{ props.title }}</span>
+      </div>
+    </template>
+    <slot />
     <template #footer>
       <slot name="footer">
         <span v-if="showCancel || showConfirm">
@@ -58,3 +73,7 @@ function handleConfirm() {
     </template>
   </el-dialog>
 </template>
+
+<style scoped>
+
+</style>

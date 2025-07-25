@@ -7,9 +7,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    copy: typeof import('../src/components/XtDialog/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Select: typeof import('./../src/components/Select/index.vue')['default']
     Stream: typeof import('./../src/components/stream.vue')['default']
     SvgIcon: typeof import('./../src/components/SvgIcon/index.vue')['default']
     XtDialog: typeof import('./../src/components/XtDialog/index.vue')['default']
