@@ -5,9 +5,6 @@ interface Props {
 }
 const props = defineProps<Props>()
 const radioValue = ref(props.value)
-onMounted(() => {
-  console.log(props.rid)
-})
 function handleChange() {
 
 }

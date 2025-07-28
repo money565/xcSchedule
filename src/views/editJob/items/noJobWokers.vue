@@ -6,7 +6,6 @@ import { noJobWorkerList } from '../publicData'
 const acs = useAppCacheStore()
 function init() {
   getUnflexibleWorker(acs.currentProject).then(({ data: res }) => {
-    console.log('未分配工作员工', res)
     noJobWorkerList.value = res.result
   })
 }

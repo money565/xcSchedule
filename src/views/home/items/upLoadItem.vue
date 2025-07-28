@@ -10,7 +10,6 @@ const acs = useAppCacheStore()
 const router = useRouter()
 const action = ref('https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15')
 function toEdit() {
-  console.log(props.target)
   if (props.target === 'price') {
     router.push({
       name: 'worker',

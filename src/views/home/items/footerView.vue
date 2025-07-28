@@ -19,7 +19,6 @@ const acs = useAppCacheStore()
 const rules = ref<rulesOpt[]>([])
 function init() {
   getEditRuleByProject(acs.currentProject).then(({ data: res }) => {
-    console.log(res)
     rules.value = res.result
   })
 }

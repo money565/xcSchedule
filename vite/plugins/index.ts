@@ -9,7 +9,6 @@ import setupExtendPlus from './extend-plus'
 import setupSvgIcon from './svg-icon'
 
 export default function setupVitePlugins(env: Record<string, string>, isBuild: boolean) {
-  console.log(env)
   const plugins: PluginOption[] = [UnoCSS(), vue(), vueJsx(), vueDevTools()]
   plugins.push(setupAutoImport())
   plugins.push(setupComponents())

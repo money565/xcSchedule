@@ -34,13 +34,11 @@ const ruleFormRef = ref()
 onMounted(() => {
   if (typeChoiceList.value === undefined) {
     getTypesChoices().then(({ data: res }) => {
-      console.log(res)
       typeChoiceList.value = res.result
     })
   }
   if (LaborContractChoices.value === undefined) {
     getLaborContractChoices().then(({ data: res }) => {
-      console.log(res)
       LaborContractChoices.value = res.result
     })
   }
@@ -49,7 +47,6 @@ onMounted(() => {
   }
   if (LaborContractChoices.value) {
     form.labor_contract = LaborContractChoices.value[0].value
-    console.log('设定默认值')
   }
 })
 
@@ -112,7 +109,7 @@ function submitForm(formEl: FormInstance | undefined) {
       }
     }
     else {
-      console.log('error submit!')
+      alert('error submit!')
     }
   })
 }

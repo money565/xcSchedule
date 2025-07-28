@@ -43,7 +43,6 @@ onMounted(() => {
 })
 function init(start = 0, end = 14) {
   getWorkerByProject(acs.currentProject, start, end).then(({ data: res }) => {
-    console.log(res)
     totalItem.value = res.total
     const temp = []
     for (const i in res.result) {
@@ -209,7 +208,6 @@ function createWorker() {
 }
 
 function showDeleteWorkerDialog(index: number) {
-  console.log('删除', index)
   currentIndex.value = index
   deleteWorkerDialog.value = true
 }

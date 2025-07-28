@@ -171,7 +171,6 @@ function showDelete(index: number) {
 
 function doDelete() {
   deleteJob(tableData.value[deleteIndex.value].id).then(({ data: res }) => {
-    console.log('删除结果', res)
     init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1)
     noJobRefresh.value = new Date().getTime()
     deleteDialog.value = false

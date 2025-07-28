@@ -26,7 +26,6 @@ function setFestival(date: string) {
       f_date: date,
     }
     setFestivalInterface(params).then(({ data: res }) => {
-      console.log(res)
       festival.value.push(date)
     })
   }
@@ -37,7 +36,6 @@ function setFestival(date: string) {
       f_date: date,
     }
     setFestivalInterface(params).then(({ data: res }) => {
-      console.log(res)
       festival.value.splice(index, 1)
     })
   }
@@ -98,9 +96,7 @@ function init() {
           start: DateToStr(acs.timeRange[0]),
           end: DateToStr(acs.timeRange[1]),
         }
-        console.log('入参', params)
         getWorkerRestByTimerange(params).then(({ data: res }) => {
-          console.log('休息日', res)
           for (const i in res.result) {
             timeArray.value[res.result[i].date].push({
               link: res.result[i].link,
@@ -152,7 +148,6 @@ function addRestMan(value: any, date: string) {
     date,
   }
   setWorkerRest(params).then(({ data: res }) => {
-    console.log(res)
     if (res.result === 'ok') {
       timeArray.value[date].push(value)
       queryRefreshKey.value = new Date().getTime()

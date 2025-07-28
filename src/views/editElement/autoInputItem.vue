@@ -27,7 +27,6 @@ function querySearchAsync(queryString: string, cb: (arg: any) => void) {
   }
   if (params !== null) {
     queryJobKeyword(params).then(({ data: res }) => {
-      console.log(res)
       cb(res.q)
     })
   }

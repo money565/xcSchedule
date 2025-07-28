@@ -199,3 +199,20 @@ export function checkDatas(config: any) {
     },
   })
 }
+
+export function makeScheduls(config: any) {
+  return request({
+    url: `/makeScheduls`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function getScheduleResult(target: string) {
+  return request({
+    url: `/getSchedule/${target}`,
+    method: 'get',
+  })
+}

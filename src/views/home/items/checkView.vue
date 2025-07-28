@@ -18,7 +18,6 @@ function checkTimeRangeDatas() {
       end_date: DateToStr(acs.timeRange[1]),
     }
     checkDatas(params).then(({ data: res }) => {
-      console.log(res)
       checkResult.value = res.result
     })
   }
