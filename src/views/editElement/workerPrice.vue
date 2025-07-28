@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { changeWorker, getLaborContractChoices, getTypesChoices, getWorkerByProject } from '@/axios/interface'
+import { changeWorker, deleteWorker, getLaborContractChoices, getTypesChoices, getWorkerByProject } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import autoInputItem from './autoInputItem.vue'
 import createWorkerShow from './createWorker.vue'
@@ -36,8 +36,12 @@ const isEdit = ref<boolean>(false)
 const currentIndex = ref<number>(-1)
 const totalItem = ref<number>(0)
 const createWorkerDialog = ref(false)
-
-function init(start = 0, end = 15) {
+const deleteWorkerDialog = ref(false)
+const currentPage = ref<number>(1)
+onMounted(() => {
+  init()
+})
+function init(start = 0, end = 14) {
   getWorkerByProject(acs.currentProject, start, end).then(({ data: res }) => {
     console.log(res)
     totalItem.value = res.total
@@ -61,10 +65,6 @@ function init(start = 0, end = 15) {
     }
     tableData.value = temp
   })
-}
-
-function deleteWorker(index: number) {
-  console.log('删除', index)
 }
 
 function resetEdit() {
@@ -199,7 +199,8 @@ function receiveMesg(value: any) {
 function pageChange(page: number) {
   const start = page * 15 - 15
   const end = page * 15 - 1
-  console.log(start, end)
+  currentPage.value = page
+  createWorkerDialog.value = false
   init(start, end)
 }
 
@@ -207,9 +208,23 @@ function createWorker() {
   createWorkerDialog.value = true
 }
 
-onMounted(() => {
-  init()
-})
+function showDeleteWorkerDialog(index: number) {
+  console.log('删除', index)
+  currentIndex.value = index
+  deleteWorkerDialog.value = true
+}
+
+function doDeleteWorker() {
+  deleteWorker(tableData.value[currentIndex.value].id).then(() => {
+    pageChange(currentPage.value)
+    deleteWorkerDialog.value = false
+  })
+}
+
+function modelChange() {
+  resetEdit()
+  isEdit.value = !isEdit.value
+}
 </script>
 
 <template>
@@ -221,7 +236,7 @@ onMounted(() => {
     </div>
     <div>
       <div>
-        <el-button @click="isEdit = !isEdit">
+        <el-button @click="modelChange">
           {{ isEdit ? "编辑模式" : "浏览模式" }}
         </el-button>
         <el-button @click="createWorker">
@@ -295,14 +310,20 @@ onMounted(() => {
                 {{ scoped.row.main_job === null ? "" : scoped.row.main_job.name }}
               </div>
               <div>
-                <el-icon v-if="isEdit" size="25" @click="editWork('job', scoped.$index)">
+                <el-icon v-if="isEdit && scoped.row.types.num !== 4" size="25" @click="editWork('job', scoped.$index)">
                   <svg-icon name="edit" />
                 </el-icon>
+                <div v-if="isEdit && scoped.row.types.num === 4" class="text-gray-400">
+                  固定岗位员工不设置岗位
+                </div>
               </div>
             </div>
             <div v-else class="flex">
-              <div>
-                <autoInputItem :title="scoped.row.main_job.name" @sent-mesg="receiveMesg" />
+              <div v-if="scoped.row.main_job !== null">
+                <autoInputItem :title="scoped.row.main_job.name" target="job" @sent-mesg="receiveMesg" />
+              </div>
+              <div v-else>
+                <autoInputItem title="" target="job" @sent-mesg="receiveMesg" />
               </div>
               <div class="ml-3 mt-1">
                 <el-icon v-if="isEdit" size="23" @click="editWork('job', scoped.$index)">
@@ -405,7 +426,7 @@ onMounted(() => {
         <el-table-column label="操作" width="180">
           <template #default="scoped">
             <div>
-              <el-button type="danger" @click="deleteWorker(scoped.$index)">
+              <el-button type="danger" @click="showDeleteWorkerDialog(scoped.$index)">
                 删除
               </el-button>
             </div>
@@ -421,9 +442,19 @@ onMounted(() => {
         @change="pageChange"
       />
     </div>
-    <XtDialog v-model="createWorkerDialog" title="新建员工">
+    <XtDialog v-model="createWorkerDialog" title="新建员工" :show-confirm="false" :show-cancel="false">
       <div>
-        <createWorkerShow />
+        <createWorkerShow @send-mesg="pageChange(currentPage)" />
+      </div>
+    </XtDialog>
+    <XtDialog v-model="deleteWorkerDialog" title="确认删除" @cancel="deleteWorkerDialog = false" @confirm="doDeleteWorker">
+      <div>
+        <h3>
+          确认删除员工
+          <el-text class="text-4 font-sans font-semibold" type="warning">
+            {{ tableData[currentIndex].name }}
+          </el-text>  吗？
+        </h3>
       </div>
     </XtDialog>
   </div>

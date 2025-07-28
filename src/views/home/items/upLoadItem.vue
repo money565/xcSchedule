@@ -1,8 +1,12 @@
+<!-- eslint-disable no-alert -->
 <script setup lang="ts">
+import { useAppCacheStore } from '@/stores/appCache'
+
 const props = defineProps({
   title: String,
   target: String,
 })
+const acs = useAppCacheStore()
 const router = useRouter()
 const action = ref('https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15')
 function toEdit() {
@@ -10,6 +14,25 @@ function toEdit() {
   if (props.target === 'price') {
     router.push({
       name: 'worker',
+    })
+  }
+  if (props.target === 'job') {
+    router.push({
+      name: 'job',
+    })
+  }
+  if (props.target === 'rest') {
+    if (acs.timeRange === undefined) {
+      alert('需要先在顶部选择排版期间')
+      return null
+    }
+    router.push({
+      name: 'rest',
+    })
+  }
+  if (props.target === 'replace') {
+    router.push({
+      name: 'replace',
     })
   }
 }

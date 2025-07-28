@@ -13,7 +13,7 @@ import upLoadItem from './items/upLoadItem.vue'
     <div class="grid place-items-center mt-8">
       <div class="flex gap-8">
         <div>
-          <upLoadItem title="导入员工单价" target="price" />
+          <upLoadItem title="员工信息表" target="price" />
         </div>
         <div>
           <upLoadItem title="固定岗位安排表" target="job" />
@@ -24,7 +24,7 @@ import upLoadItem from './items/upLoadItem.vue'
           <upLoadItem title="员工休假表" target="rest" />
         </div>
         <div>
-          <upLoadItem title="调班表上传" target="exchange" />
+          <upLoadItem title="调班表上传" target="replace" />
         </div>
       </div>
     </div>

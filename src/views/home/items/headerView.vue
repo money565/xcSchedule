@@ -2,7 +2,6 @@
 import { useAppCacheStore } from '@/stores/appCache'
 
 const acs = useAppCacheStore()
-const period = ref<[Date, Date]>()
 const options = [
   {
     value: 1,
@@ -13,14 +12,6 @@ const options = [
     label: '蔚蓝卡地亚花园城',
   },
 ]
-
-function timeRangeChange() {
-  if (period.value) {
-    const start_data = `${period.value[0].getFullYear()}-${period.value[0].getMonth() + 1}-${period.value[0].getDate()}`
-    const end_data = `${period.value[1].getFullYear()}-${period.value[1].getMonth() + 1}-${period.value[1].getDate()}`
-    console.log(start_data, end_data)
-  }
-}
 </script>
 
 <template>
@@ -65,13 +56,12 @@ function timeRangeChange() {
             </div>
             <div>
               <el-date-picker
-                v-model="period"
+                v-model="acs.timeRange"
                 type="daterange"
                 range-separator="至"
                 start-placeholder="开始时间"
                 end-placeholder="结束时间"
                 size="large"
-                @change="timeRangeChange"
               />
             </div>
           </div>

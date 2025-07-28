@@ -13,6 +13,21 @@ const router = createRouter({
       name: 'worker',
       component: () => import('@/views/editElement/workerPrice.vue'),
     },
+    {
+      path: '/job',
+      name: 'job',
+      component: () => import('@/views/editJob/index.vue'),
+    },
+    {
+      path: '/rest',
+      name: 'rest',
+      component: () => import('@/views/editRest/index.vue'),
+    },
+    {
+      path: '/replace',
+      name: 'replace',
+      component: () => import('@/views/editWokerReplace/index.vue'),
+    },
   ],
 })
 
