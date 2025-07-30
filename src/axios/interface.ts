@@ -35,9 +35,9 @@ export function deleteJob(jid: number) {
   })
 }
 
-export function getJobByProject(pid: number, start: number, end: number) {
+export function getJobByProject(pid: number, start: number, end: number, replace: number = 0) {
   return request({
-    url: `/getJobByProject/${pid}/${start}/${end}`,
+    url: `/getJobByProject/${pid}/${start}/${end}/${replace}`,
     method: 'get',
   })
 }
@@ -203,6 +203,16 @@ export function checkDatas(config: any) {
 export function makeScheduls(config: any) {
   return request({
     url: `/makeScheduls`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function createJobAssociate(config: any) {
+  return request({
+    url: `/createJobAssociate`,
     method: 'post',
     data: {
       ...config,

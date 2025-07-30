@@ -96,6 +96,7 @@ function submitForm(formEl: FormInstance | undefined) {
   formEl.validate((valid) => {
     if (valid) {
       let upload = true
+      console.log('types============', form.types)
       if (form.types !== 4) {
         if (form.main_job === -1) {
           alert('非机动岗必须分配岗位')
@@ -137,9 +138,9 @@ function resetForm(formEl: FormInstance | undefined) {
           </el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="员工类型" prop="labor_contract">
+      <el-form-item label="员工类型" prop="types">
         <div v-if="typeChoiceList">
-          <el-select v-model="form.labor_contract" placeholder="Select" style="width: 240px">
+          <el-select v-model="form.types" placeholder="Select" style="width: 240px">
             <el-option
               v-for="item in typeChoiceList"
               :key="item.value"

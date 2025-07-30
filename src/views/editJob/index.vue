@@ -1,33 +1,10 @@
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
-import { changeJob, deleteJob, delWorkerJob, getJobByProject, getLimitChoices, setWorkerJob } from '@/axios/interface'
-import { useAppCacheStore } from '@/stores/appCache'
+import { changeJob, deleteJob, delWorkerJob, getLimitChoices, setWorkerJob } from '@/axios/interface'
 import noJobWokers from './items/noJobWokers.vue'
-import { noJobWorkerList, type workerListOpt } from './publicData'
+import { init, type jonOpt, noJobWorkerList, type resultOpt, type workerListOpt } from './publicData'
 
-interface jonOpt {
-  id: number
-  name: string
-  area: string
-  startTime: string
-  endTime: string
-  types: {
-    num: number
-    name: string
-  }
-  limit: {
-    num: number
-    name: string
-  }
-  workerList: {
-    id: number
-    name: string
-  }[]
-  area_edit: boolean
-  limit_edit: boolean
-}
-const acs = useAppCacheStore()
 const noJobRefresh = ref(0)
 const tableData = ref<jonOpt[]>([])
 const addWorkerDialog = ref<boolean>(false)
@@ -40,38 +17,30 @@ const isEdit = ref(false)
 const deleteDialog = ref(false)
 const deleteIndex = ref<number>(-1)
 const limitChoiceList = ref()
-function init(start: number, end: number) {
-  getJobByProject(acs.currentProject, start, end).then(({ data: res }) => {
-    const temp: jonOpt[] = []
-    total.value = res.total
-    for (const i in res.result) {
-      temp.push({
-        id: res.result[i].id,
-        name: res.result[i].name,
-        area: res.result[i].area,
-        startTime: res.result[i].startTime,
-        endTime: res.result[i].endTime,
-        types: res.result[i].types,
-        workerList: res.result[i].workerList,
-        area_edit: false,
-        limit_edit: false,
-        limit: res.result[i].limit,
-      })
-    }
-    tableData.value = temp
-  })
-}
 
 function resetEdit() {
   for (const i in tableData.value) {
     tableData.value[i].area_edit = false
     tableData.value[i].limit_edit = false
+    tableData.value[i].sn_edit = false
   }
 }
 
 function editWork(target: string, index: number) {
   let updata = false
   let strValue
+  if (target === 'sn') {
+    if (tableData.value[index].sn_edit === true) {
+      strValue = tableData.value[index].sn
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].sn_edit = true
+      updata = false
+    }
+  }
+
   if (target === 'area') {
     if (tableData.value[index].area_edit === true) {
       strValue = tableData.value[index].area
@@ -116,13 +85,17 @@ function editWork(target: string, index: number) {
     changeJob(params).then(() => {
       tableData.value[index].area_edit = false
       tableData.value[index].limit_edit = false
+      tableData.value[index].sn_edit = false
     })
   }
 }
 
 function delWorkJob(wid: number) {
   delWorkerJob(wid).then(() => {
-    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1)
+    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+      tableData.value = res.jobList
+      total.value = res.total
+    })
     noJobRefresh.value = new Date().getTime()
   })
 }
@@ -145,19 +118,29 @@ function addWorkerToJob() {
     jid: currentJobId.value,
     wl,
   }).then(() => {
-    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1)
+    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+      tableData.value = res.jobList
+      total.value = res.total
+    })
     noJobRefresh.value = new Date().getTime()
     addWorkerDialog.value = false
   })
 }
 
 onMounted(() => {
-  init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1)
+  init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+    tableData.value = res.jobList
+    total.value = res.total
+  })
 })
 
 function pageChange(page: number) {
   currentPage.value = page
-  init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1)
+  init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+    const temp: resultOpt = res
+    tableData.value = temp.jobList
+    total.value = temp.total
+  })
 }
 function modelChange() {
   resetEdit()
@@ -170,8 +153,11 @@ function showDelete(index: number) {
 }
 
 function doDelete() {
-  deleteJob(tableData.value[deleteIndex.value].id).then(({ data: res }) => {
-    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1)
+  deleteJob(tableData.value[deleteIndex.value].id).then(() => {
+    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+      tableData.value = res.jobList
+      total.value = res.total
+    })
     noJobRefresh.value = new Date().getTime()
     deleteDialog.value = false
   })
@@ -193,12 +179,31 @@ function doDelete() {
     <div class="flex">
       <div class="w-60% overflow-auto">
         <el-table :data="tableData" style="width: 100%">
-          <el-table-column label="序号" width="60">
+          <el-table-column label="顺序号" width="180">
             <template #default="scoped">
-              <div>{{ scoped.$index + 1 }}</div>
+              <div v-if="scoped.row.sn_edit === false" class="flex">
+                <div :class="[scoped.row.no_sn ? ' text-red-600' : ' text-dark-600']">
+                  {{ scoped.row.sn }}
+                </div>
+                <div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('sn', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else class="flex">
+                <div>
+                  <el-input v-model="scoped.row.sn" class="w-20" />
+                </div>
+                <div class="ml-3 mt-1">
+                  <el-icon v-if="isEdit" size="23" @click="editWork('sn', scoped.$index)">
+                    <svg-icon name="ok" />
+                  </el-icon>
+                </div>
+              </div>
             </template>
           </el-table-column>
-          <el-table-column prop="area" label="区域" width="150">
+          <el-table-column prop="area" label="区域" width="180">
             <template #default="scoped">
               <div v-if="scoped.row.area_edit === false" class="flex">
                 <div>
