@@ -1,9 +1,11 @@
+<!-- eslint-disable no-alert -->
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
-import { changeJob, deleteJob, delWorkerJob, getLimitChoices, setWorkerJob } from '@/axios/interface'
+import { changeJob, createJob, deleteJob, delWorkerJob, getJobTypesChoices, getLimitChoices, setWorkerJob } from '@/axios/interface'
+import creatJob from './items/creatJob.vue'
 import noJobWokers from './items/noJobWokers.vue'
-import { init, type jonOpt, noJobWorkerList, type resultOpt, type workerListOpt } from './publicData'
+import { init, jobTypeList, type jonOpt, limitList, noJobWorkerList, type resultOpt, type workerListOpt } from './publicData'
 
 const noJobRefresh = ref(0)
 const tableData = ref<jonOpt[]>([])
@@ -16,13 +18,17 @@ const total = ref(0)
 const isEdit = ref(false)
 const deleteDialog = ref(false)
 const deleteIndex = ref<number>(-1)
-const limitChoiceList = ref()
+
+const createNewJobDialog = ref(false)
+const form = ref()
+const createJobRefreshKey = ref(0)
 
 function resetEdit() {
   for (const i in tableData.value) {
     tableData.value[i].area_edit = false
     tableData.value[i].limit_edit = false
     tableData.value[i].sn_edit = false
+    tableData.value[i].type_edit = false
   }
 }
 
@@ -54,15 +60,15 @@ function editWork(target: string, index: number) {
   }
 
   if (target === 'limit') {
-    if (limitChoiceList.value === undefined) {
+    if (limitList.value.length === 0) {
       getLimitChoices().then(({ data: res }) => {
-        limitChoiceList.value = res.result
+        limitList.value = res.result
       })
     }
     if (tableData.value[index].limit_edit === true) {
-      for (const i in limitChoiceList.value) {
-        if (tableData.value[index].limit.num === limitChoiceList.value[Number(i)].value) {
-          tableData.value[index].limit.name = limitChoiceList.value[Number(i)].label
+      for (const i in limitList.value) {
+        if (tableData.value[index].limit.num === limitList.value[Number(i)].value) {
+          tableData.value[index].limit.name = limitList.value[Number(i)].label
         }
       }
       strValue = tableData.value[index].limit.num
@@ -76,6 +82,28 @@ function editWork(target: string, index: number) {
     }
   }
 
+  if (target === 'types') {
+    if (jobTypeList.value.length === 0) {
+      getJobTypesChoices().then(({ data: res }) => {
+        jobTypeList.value = res.result
+      })
+    }
+    if (tableData.value[index].type_edit === true) {
+      for (const i in jobTypeList.value) {
+        if (tableData.value[index].types.num === jobTypeList.value[Number(i)].value) {
+          tableData.value[index].types.name = jobTypeList.value[Number(i)].label
+        }
+      }
+      strValue = tableData.value[index].types.num
+      tableData.value[index].type_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].type_edit = true
+      updata = false
+    }
+  }
   const params = {
     jid: tableData.value[index].id,
     strValue,
@@ -162,6 +190,32 @@ function doDelete() {
     deleteDialog.value = false
   })
 }
+
+function modelCreate() {
+  resetEdit()
+  createNewJobDialog.value = true
+}
+
+function docreateJob() {
+  if (form.value !== undefined) {
+    createJob(form.value).then(() => {
+      form.value = undefined
+      createNewJobDialog.value = false
+      createJobRefreshKey.value = new Date().getTime()
+      init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+        tableData.value = res.jobList
+        total.value = res.total
+      })
+    })
+  }
+  else {
+    alert('请完成所有项目')
+  }
+}
+function receiveMesg(value: any) {
+  console.log('收到的上传消息', value)
+  form.value = value
+}
 </script>
 
 <template>
@@ -174,6 +228,9 @@ function doDelete() {
     <div>
       <el-button @click="modelChange">
         {{ isEdit ? "编辑模式" : "浏览模式" }}
+      </el-button>
+      <el-button @click="modelCreate">
+        创建岗位
       </el-button>
     </div>
     <div class="flex">
@@ -249,7 +306,39 @@ function doDelete() {
           </el-table-column>
           <el-table-column prop="startTime" label="开始时间" width="120" />
           <el-table-column prop="endTime" label="开始时间" width="120" />
-          <el-table-column prop="types.name" label="岗位期间" width="120" />
+          <el-table-column label="岗位期间" width="120">
+            <template #default="scoped">
+              <div class="flex">
+                <div v-if="scoped.row.type_edit === false">
+                  <div class="flex">
+                    <div>{{ scoped.row.types.name }}</div>
+                    <el-icon v-if="isEdit" size="25" @click="editWork('types', scoped.$index)">
+                      <svg-icon name="edit" />
+                    </el-icon>
+                  </div>
+                </div>
+                <div v-else>
+                  <div class="flex">
+                    <div>
+                      <el-select v-model="scoped.row.types.num" placeholder="Select" style="width: 80px">
+                        <el-option
+                          v-for="item in jobTypeList"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-select>
+                    </div>
+                    <div class="mt-1 ml-2">
+                      <el-icon v-if="isEdit" size="22" @click="editWork('types', scoped.$index)">
+                        <svg-icon name="ok" />
+                      </el-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="限制" width="120">
             <template #default="scoped">
               <div class="flex">
@@ -266,7 +355,7 @@ function doDelete() {
                     <div>
                       <el-select v-model="scoped.row.limit.num" placeholder="Select" style="width: 80px">
                         <el-option
-                          v-for="item in limitChoiceList"
+                          v-for="item in limitList"
                           :key="item.value"
                           :label="item.label"
                           :value="item.value"
@@ -324,6 +413,11 @@ function doDelete() {
     </xt-dialog>
     <XtDialog v-model="deleteDialog" title="删除工作岗位确认" @cancel="deleteDialog = false" @confirm="doDelete">
       确实要删除工作岗位吗？
+    </XtDialog>
+    <XtDialog v-model="createNewJobDialog" title="新建工作岗位" @cancel="createNewJobDialog = false" @confirm="docreateJob">
+      <div>
+        <creatJob :key="createJobRefreshKey" @send-mesg="receiveMesg" />
+      </div>
     </XtDialog>
   </div>
 </template>

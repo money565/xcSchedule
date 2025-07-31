@@ -70,6 +70,13 @@ export function getLimitChoices() {
   })
 }
 
+export function getJobTypesChoices() {
+  return request({
+    url: `/getJobTypesChoices`,
+    method: 'get',
+  })
+}
+
 export function findEmpByKw(config: any) {
   return request({
     url: `/searchemp`,
@@ -213,6 +220,16 @@ export function makeScheduls(config: any) {
 export function createJobAssociate(config: any) {
   return request({
     url: `/createJobAssociate`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function createJob(config: any) {
+  return request({
+    url: `/createJob`,
     method: 'post',
     data: {
       ...config,

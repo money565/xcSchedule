@@ -2,6 +2,8 @@ import { getJobByProject } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 
 const acs = useAppCacheStore()
+export const jobTypeList = ref<{ label: string, value: number }[]>([])
+export const limitList = ref<{ label: string, value: number }[]>([])
 export interface jonOpt {
   id: number
   sn: number
@@ -25,6 +27,7 @@ export interface jonOpt {
   area_edit?: boolean
   limit_edit?: boolean
   sn_edit?: boolean
+  type_edit?: boolean
   replacementList?: { link: number, value: string }[]
 }
 
@@ -75,6 +78,7 @@ export function init(start: number, end: number, replace: number = 0): Promise<r
           limit_edit: false,
           sn_edit: false,
           limit: res.result[i].limit,
+          type_edit: false,
           replacementList: res.result[i].replacementList,
         })
       }
