@@ -8,9 +8,12 @@ import dayjs from 'dayjs'
 import autoInputItem from '../editElement/autoInputItem.vue'
 
 const acs = useAppCacheStore()
+const playback = ref<any>({})
+const allViewDate = ref<[Date, Date]>()
 const timeArray = ref<any>({})
 const queryRefreshKey = ref(0)
 const festival = ref<string[]>([])
+const viewDays = ref<number>(15)
 function setFestival(date: string) {
   let index = -1
   for (const i in festival.value) {
@@ -70,7 +73,6 @@ function getDateRangeArray(start: Date, end: Date) {
     // 增加一天
     currentDate.setDate(currentDate.getDate() + 1)
   }
-
   return dateArray
 }
 
@@ -84,26 +86,38 @@ function DateToStr(date: Date) {
 function init() {
   if (acs.timeRange) {
     timeArray.value = getDateRangeArray(acs.timeRange[0], acs.timeRange[1])
+    const date1 = new Date(acs.timeRange[0])
+    date1.setDate(date1.getDate() - viewDays.value)
+    const date2 = new Date(acs.timeRange[0])
+    date2.setDate(date2.getDate() - 1)
+    playback.value = getDateRangeArray(date1, date2)
+    allViewDate.value = [date1, acs.timeRange[1]]
+    const FesParams = {
+      pid: acs.currentProject,
+      date_list: { ...playback.value, ...timeArray.value },
+    }
+    getFestival(FesParams).then(({ data: res }) => {
+      festival.value = res.result
+    })
     const params = {
       pid: acs.currentProject,
-      date_list: timeArray.value,
+      start: DateToStr(date1),
+      end: DateToStr(acs.timeRange[1]),
     }
-    getFestival(params).then(({ data: res }) => {
-      festival.value = res.result
-      if (acs.timeRange && acs.timeRange) {
-        const params = {
-          pid: acs.currentProject,
-          start: DateToStr(acs.timeRange[0]),
-          end: DateToStr(acs.timeRange[1]),
+    getWorkerRestByTimerange(params).then(({ data: res }) => {
+      for (const i in res.result) {
+        if (res.result[i].date in timeArray.value) {
+          timeArray.value[res.result[i].date].push({
+            link: res.result[i].link,
+            value: res.result[i].value,
+          })
         }
-        getWorkerRestByTimerange(params).then(({ data: res }) => {
-          for (const i in res.result) {
-            timeArray.value[res.result[i].date].push({
-              link: res.result[i].link,
-              value: res.result[i].value,
-            })
-          }
-        })
+        if (res.result[i].date in playback.value) {
+          playback.value[res.result[i].date].push({
+            link: res.result[i].link,
+            value: res.result[i].value,
+          })
+        }
       }
     })
   }
@@ -181,10 +195,25 @@ onMounted(() => {
 
 <template>
   <div>
-    员工休假安排
-    <el-calendar
-      :range="acs.timeRange"
-    >
+    <div class="flex overflow-auto">
+      <div class="w-100% bg-#409EFF h-10 text-center font-sans font-bold text-#FFFFFF lh-10">
+        调休安排表
+      </div>
+    </div>
+    <el-calendar :range="allViewDate">
+      <template #header>
+        <div class="flex">
+          <div class="font-sans font-bold mt-1 mr-3 text-dark-50">
+            预览
+          </div>
+          <div class="font-sans font-bold">
+            <el-input v-model="viewDays" type="number" :min="1" max="45" @blur="init" />
+          </div>
+          <div class="font-sans font-bold mt-1 ml-3 text-dark-50">
+            天内的休假表
+          </div>
+        </div>
+      </template>
       <template #date-cell="{ data }">
         <div v-if="timeArray.hasOwnProperty(data.day)" class="text-gray-500 font-sans font-600 w-100%">
           <div
@@ -214,7 +243,25 @@ onMounted(() => {
           </div>
         </div>
         <div v-else class="text-gray-200 font-sans font-semibold">
-          <div>{{ data.day }}</div>
+          <div v-if="playback.hasOwnProperty(data.day)">
+            <div class="w-97% bg-gray-300 rounded-md p-1 text-light-50">
+              {{ data.day }} {{ getWeekday(data.day) }}
+            </div>
+
+            <div class="ml-1">
+              <el-tag
+                v-for="item in playback[data.day]"
+                :key="item"
+                type="info"
+                class="ml-1 mt-1 w-13.3 truncate"
+              >
+                {{ String(item.value).split('-')[0] }}
+              </el-tag>
+            </div>
+          </div>
+          <div v-else>
+            {{ data.day }}
+          </div>
         </div>
       </template>
     </el-calendar>
