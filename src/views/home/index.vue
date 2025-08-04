@@ -1,15 +1,41 @@
 <script setup lang="ts">
-import { getScheduleResult, makeScheduls } from '@/axios/interface'
+import { makeScheduls } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
-import axios from 'axios'
 import { DateToStr } from '../editJob/publicData'
 import checkView from './items/checkView.vue'
 import footerView from './items/footerView.vue'
 import headerView from './items/headerView.vue'
+import scheduleResult from './items/scheduleResult.vue'
 import upLoadItem from './items/upLoadItem.vue'
 
 const acs = useAppCacheStore()
-const resultTableData: any = ref(null)
+const worker_price_time = ref<{
+  name: string
+  workHour: number
+  price: number
+}[]>([])
+const job_leak = ref({})
+const worker_leak = ref({})
+function orderMesgChange(value: { target: string, priceOrder: boolean }) {
+  console.log('相应排序')
+  if (value.target === 'price') {
+    if (value.priceOrder) {
+      worker_price_time.value.sort((a, b) => a.price - b.price)
+    }
+    else {
+      worker_price_time.value.sort((a, b) => b.price - a.price)
+    }
+  }
+
+  if (value.target === 'worktime') {
+    if (value.priceOrder) {
+      worker_price_time.value.sort((a, b) => a.workHour - b.workHour)
+    }
+    else {
+      worker_price_time.value.sort((a, b) => b.workHour - a.workHour)
+    }
+  }
+}
 async function getSchedule() {
   if (acs.timeRange) {
     // const target = `f${new Date().getTime()}`
@@ -20,7 +46,18 @@ async function getSchedule() {
     }
     try {
       makeScheduls(params).then(({ data: res }) => {
-        console.log(res)
+        console.log('排班结果', res)
+        worker_price_time.value = res.worker_price_time
+        job_leak.value = res.job_leak
+        worker_leak.value = res.worker_leak
+        console.log(worker_price_time.value, job_leak.value, worker_leak.value)
+        const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
+        const downloadUrl = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = downloadUrl
+        link.download = 'pbb'
+        link.click()
+        URL.revokeObjectURL(downloadUrl)
       })
     }
     catch (error) {
@@ -79,19 +116,8 @@ async function getSchedule() {
         </div>
       </el-button>
     </div>
-    <div v-if="resultTableData !== null" class="grid place-items-center mt-8">
-      <el-card class="w-1080px rounded-1rem font-sans font-semibold text-center">
-        <div>排班结果数据</div>
-        <div>
-          <el-table :data="resultTableData" class="w-200 mx-auto">
-            <el-table-column prop="jobsNum" label="岗位总数" width="180" />
-            <el-table-column prop="allTotalPrice" label="总成本" width="180" />
-            <el-table-column prop="allWorkList" label="排班人数" />
-            <el-table-column prop="allWorkerTime" label="总工时" />
-            <el-table-column prop="unset" label="未安排人员岗位数" />
-          </el-table>
-        </div>
-      </el-card>
+    <div class="grid place-items-center mt-8">
+      <scheduleResult :worker_price_time="worker_price_time" :job_leak="job_leak" :worker_leak="worker_leak" @order="orderMesgChange" />
     </div>
   </div>
 </template>
