@@ -4,6 +4,7 @@ import { checkDatas } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { DateToStr } from '@/views/editJob/publicData'
 
+const router = useRouter()
 const acs = useAppCacheStore()
 const checkResult = ref<{
   totalJobNum: number
@@ -25,11 +26,21 @@ function checkTimeRangeDatas() {
     alert('请选择周期')
   }
 }
+function toPointJob() {
+  if (acs.timeRange === undefined) {
+    alert('请选择排班周期')
+    return null
+  }
+  router.push({ name: 'pointWorker' })
+}
 </script>
 
 <template>
   <div>
     <el-card class="w-1080px rounded-1rem font-sans font-semibold">
+      <el-button type="primary" class="font-sans font-medium" @click="toPointJob">
+        手动指定班次
+      </el-button>
       <el-button type="primary" class="font-sans font-medium" @click="checkTimeRangeDatas">
         检查数据
       </el-button>

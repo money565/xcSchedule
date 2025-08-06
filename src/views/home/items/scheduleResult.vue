@@ -26,7 +26,7 @@ const totalPrice = computed(() => {
     ptemp = ptemp + props.worker_price_time[i].price
     ttemp = ttemp + props.worker_price_time[i].workHour
   }
-  return [ptemp.toFixed(2), ttemp, (ptemp/props.worker_price_time.length).toFixed(2), (ttemp/props.worker_price_time.length).toFixed(2)]
+  return [ptemp.toFixed(2), ttemp, (ptemp / props.worker_price_time.length).toFixed(2), (ttemp / props.worker_price_time.length).toFixed(2)]
 })
 function orderByPrice() {
   priceOrder.value = !priceOrder.value
@@ -66,30 +66,9 @@ function orderByWorkTimeOrder() {
               </el-icon>
             </div>
           </div>
-          <div class="h-100 w-60 overflow-auto">
+          <div class="h-100 w-80 overflow-auto">
             <div v-for="(item, index) in worker_price_time" :key="index">
               {{ item.name }} : {{ item.workHour }} h, {{ item.price }} 元
-            </div>
-          </div>
-        </div>
-        <div class="ml-5">
-          <div class="mb-5">
-            未安排到的岗位：
-          </div>
-          <div class="h-100 w-45 overflow-auto">
-            <div v-for="(item, index) in props.job_leak" :key="index">
-              {{ index }} : {{ item.length === 0 ? "全部安排" : item }}
-            </div>
-          </div>
-        </div>
-
-        <div class="ml-5">
-          <div class="mb-5">
-            未安排到的人员：
-          </div>
-          <div class="h-100 w-60 overflow-auto">
-            <div v-for="(item, index) in props.worker_leak" :key="index">
-              {{ index }} : {{ item.length === 0 ? "全部安排" : item }}
             </div>
           </div>
         </div>
@@ -112,7 +91,7 @@ function orderByWorkTimeOrder() {
             节日数
           </div>
           <div class="h-20 w-20 overflow-auto">
-            15000
+            0
           </div>
         </div>
 
@@ -127,13 +106,37 @@ function orderByWorkTimeOrder() {
             人均工时
           </div>
           <div class="h-20 w-20 overflow-auto">
-             {{ totalPrice[3] }}
+            {{ totalPrice[3] }}
           </div>
           <div class="mb-5">
             周末数
           </div>
           <div class="h-20 w-20 overflow-auto">
-            15000
+            0
+          </div>
+        </div>
+      </div>
+    </el-card>
+    <el-card class="w-1080px rounded-1rem font-sans font-semibold">
+      <div class="ml-5">
+        <div class="mb-5">
+          未安排到的岗位：
+        </div>
+        <div class="w-100% overflow-auto">
+          <div v-for="(item, index) in props.job_leak" :key="index">
+            {{ index }} : {{ item.length === 0 ? "全部安排" : item }}
+          </div>
+        </div>
+      </div>
+    </el-card>
+    <el-card class="w-1080px rounded-1rem font-sans font-semibold">
+      <div class="ml-5">
+        <div class="mb-5">
+          未安排到的人员：
+        </div>
+        <div class="w-100% overflow-auto">
+          <div v-for="(item, index) in props.worker_leak" :key="index">
+            {{ index }} : {{ item.length === 0 ? "全部安排" : item }}
           </div>
         </div>
       </div>

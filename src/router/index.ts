@@ -28,6 +28,11 @@ const router = createRouter({
       name: 'replace',
       component: () => import('@/views/editWokerReplace/index.vue'),
     },
+    {
+      path: '/pointWorker',
+      name: 'pointWorker',
+      component: () => import('@/views/pointWorker/pointWorker.vue'),
+    },
   ],
 })
 
