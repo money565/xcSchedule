@@ -38,7 +38,7 @@ function toPointJob() {
 <template>
   <div>
     <el-card class="w-1080px rounded-1rem font-sans font-semibold">
-      <el-button type="primary" class="font-sans font-medium" @click="toPointJob">
+      <el-button type="primary" class="font-sans font-semibold" link @click="toPointJob">
         手动指定班次
       </el-button>
       <el-button type="primary" class="font-sans font-medium" @click="checkTimeRangeDatas">
