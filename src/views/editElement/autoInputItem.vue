@@ -25,6 +25,13 @@ function querySearchAsync(queryString: string, cb: (arg: any) => void) {
       t: 'worker',
     }
   }
+  if (props.target === 'worker_rest') {
+    params = {
+      pid: acs.currentProject,
+      kw: queryString,
+      t: 'wr',
+    }
+  }
   if (params !== null) {
     queryJobKeyword(params).then(({ data: res }) => {
       cb(res.q)

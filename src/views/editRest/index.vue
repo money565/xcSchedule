@@ -196,7 +196,7 @@ onMounted(() => {
             {{ data.day }} {{ getWeekday(data.day) }}
           </div>
           <div class="mt-2">
-            <autoInputItem :key="queryRefreshKey" title="" target="worker" @sent-mesg="(value) => addRestMan(value, data.day)" />
+            <autoInputItem :key="queryRefreshKey" title="" target="worker_rest" @sent-mesg="(value) => addRestMan(value, data.day)" />
           </div>
           <div>
             <el-card class="w-99% mt-2 h-22 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

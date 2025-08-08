@@ -29,6 +29,8 @@ export interface jonOpt {
   limit_edit?: boolean
   sn_edit?: boolean
   type_edit?: boolean
+  start_edit?: boolean
+  end_edit?: boolean
   replacementList?: { link: number, value: string }[]
 }
 
@@ -80,6 +82,8 @@ export function init(start: number, end: number, replace: number = 0): Promise<r
           sn_edit: false,
           limit: res.result[i].limit,
           type_edit: false,
+          start_edit: false,
+          end_edit: false,
           replacementList: res.result[i].replacementList,
         })
       }
@@ -114,6 +118,8 @@ export function resetEdit() {
     tableData.value[i].limit_edit = false
     tableData.value[i].sn_edit = false
     tableData.value[i].type_edit = false
+    tableData.value[i].start_edit = false
+    tableData.value[i].end_edit = false
   }
 }
 
@@ -163,6 +169,28 @@ export function editWork(target: string, index: number) {
     else {
       resetEdit()
       tableData.value[index].limit_edit = true
+      updata = false
+    }
+  }
+
+  if (target === 'start_edit' || target === 'end_edit') {
+    let clumn = ''
+    if (target === 'start_edit') {
+      clumn = 'startTime'
+    }
+    else {
+      clumn = 'endTime'
+    }
+    if (tableData.value[index][target] === true) {
+      if (clumn === 'startTime' || clumn === 'endTime') {
+        strValue = tableData.value[index][clumn]
+      }
+      tableData.value[index][target] = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index][target] = true
       updata = false
     }
   }
@@ -293,4 +321,80 @@ export function docreateJob() {
 export function receiveMesg(value: any) {
   console.log('收到的上传消息', value)
   form.value = value
+}
+
+export function doTimeRangesOverlap(timeRanges: string[][]) {
+  // 将时间字符串转换为分钟数
+  function timeToMinutes(timeStr: string) {
+    const [hours, minutes] = timeStr.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+
+  // 转换所有时间区间为分钟数
+  const ranges = timeRanges.map(range => ({
+    start: timeToMinutes(range[0]),
+    end: timeToMinutes(range[1]),
+  }))
+
+  // 两两比较所有时间区间
+  for (let i = 0; i < ranges.length; i++) {
+    for (let j = i + 1; j < ranges.length; j++) {
+      const range1 = ranges[i]
+      const range2 = ranges[j]
+
+      // 检查是否有交集
+      if (!(range1.end <= range2.start || range2.end <= range1.start)) {
+        return true // 发现交集
+      }
+    }
+  }
+
+  return false // 没有发现交集
+}
+
+export function findUncoveredTimes(baseRange: string[], timeRanges: any[]) {
+  // 将时间字符串转换为分钟数
+  const toMinutes = (time: any) => {
+    const [h, m] = time.split(':').map(Number)
+    return h * 60 + m
+  }
+
+  // 转换标定区间
+  const [baseStart, baseEnd] = baseRange.map(toMinutes)
+
+  // 转换所有时间段并按照开始时间排序
+  const ranges = timeRanges
+    .map((range: any[]) => range.map(toMinutes))
+    .sort((a: number[], b: number[]) => a[0] - b[0])
+
+  // 初始化未覆盖时间段数组
+  const uncovered = []
+  let current = baseStart
+
+  // 检查每个时间段
+  for (const [start, end] of ranges) {
+    if (start > current) {
+      // 发现未覆盖的时间段
+      uncovered.push([current, start])
+    }
+    if (end > current) {
+      current = end
+    }
+    if (current >= baseEnd)
+      break
+  }
+
+  // 检查最后一段是否覆盖到标定结束时间
+  if (current < baseEnd) {
+    uncovered.push([current, baseEnd])
+  }
+
+  // 将分钟数转换回时间字符串
+  const toTimeString = (minutes: number) => {
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+  }
+
+  return uncovered.map(range => range.map(toTimeString))
 }

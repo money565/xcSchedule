@@ -243,3 +243,30 @@ export function getScheduleResult(target: string) {
     method: 'get',
   })
 }
+
+export function deleteWorkerPoint(wjid: number) {
+  return request({
+    url: `/deleteWorkerPoint/${wjid}`,
+    method: 'get',
+  })
+}
+
+export function pointJobToWorker(config: any) {
+  return request({
+    url: `/pointJobToWorker`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function getWorkerPoint(config: any) {
+  return request({
+    url: `/getWorkerPoint`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}

@@ -60,7 +60,7 @@ onMounted(() => {
     <div class="flex">
       <div class="w-60% overflow-auto">
         <el-table :data="tableData" style="width: 100%">
-          <el-table-column label="顺序号" width="180">
+          <el-table-column label="顺序号" width="120">
             <template #default="scoped">
               <div v-if="scoped.row.sn_edit === false" class="flex">
                 <div :class="[scoped.row.no_sn ? ' text-red-600' : ' text-dark-600']">
@@ -74,7 +74,7 @@ onMounted(() => {
               </div>
               <div v-else class="flex">
                 <div>
-                  <el-input v-model="scoped.row.sn" class="w-20" />
+                  <el-input v-model="scoped.row.sn" class="w-15" />
                 </div>
                 <div class="ml-3 mt-1">
                   <el-icon v-if="isEdit" size="23" @click="editWork('sn', scoped.$index)">
@@ -84,7 +84,7 @@ onMounted(() => {
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="area" label="区域" width="180">
+          <el-table-column prop="area" label="区域" width="140">
             <template #default="scoped">
               <div v-if="scoped.row.area_edit === false" class="flex">
                 <div>
@@ -128,8 +128,64 @@ onMounted(() => {
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="startTime" label="开始时间" width="120" />
-          <el-table-column prop="endTime" label="开始时间" width="120" />
+          <el-table-column prop="startTime" label="开始时间" width="190">
+            <template #default="scoped">
+              <div v-if="scoped.row.start_edit === false" class="flex">
+                {{ scoped.row.startTime }}
+                <div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('start_edit', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else class="flex">
+                <div>
+                  <el-time-select
+                    v-model="scoped.row.startTime"
+                    style="width: 120px"
+                    start="07:30"
+                    step="00:15"
+                    end="23:30"
+                    placeholder="Select time"
+                  />
+                </div>
+                <div class="ml-3 mt-1">
+                  <el-icon v-if="isEdit" size="23" @click="editWork('start_edit', scoped.$index)">
+                    <svg-icon name="ok" />
+                  </el-icon>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="endTime" label="结束时间" width="190">
+            <template #default="scoped">
+              <div v-if="scoped.row.end_edit === false" class="flex">
+                {{ scoped.row.endTime }}
+                <div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('end_edit', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else class="flex">
+                <div>
+                  <el-time-select
+                    v-model="scoped.row.endTime"
+                    style="width: 120px"
+                    start="07:30"
+                    step="00:15"
+                    end="23:30"
+                    placeholder="Select time"
+                  />
+                </div>
+                <div class="ml-3 mt-1">
+                  <el-icon v-if="isEdit" size="23" @click="editWork('end_edit', scoped.$index)">
+                    <svg-icon name="ok" />
+                  </el-icon>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="岗位期间" width="120">
             <template #default="scoped">
               <div class="flex">
