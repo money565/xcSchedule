@@ -5,6 +5,8 @@ import { useAppCacheStore } from '@/stores/appCache'
 const props = defineProps({
   title: String,
   target: String,
+  placeholder: String,
+  currentDate: String,
 })
 const emits = defineEmits(['sentMesg'])
 const acs = useAppCacheStore()
@@ -29,6 +31,7 @@ function querySearchAsync(queryString: string, cb: (arg: any) => void) {
     params = {
       pid: acs.currentProject,
       kw: queryString,
+      currentDate: props.currentDate,
       t: 'wr',
     }
   }
@@ -48,7 +51,7 @@ function handleSelect(item: Record<string, any>) {
   <el-autocomplete
     v-model="state"
     :fetch-suggestions="querySearchAsync"
-    placeholder="请输入岗位"
+    :placeholder="props.placeholder"
     :debounce="1000"
     @select="handleSelect"
   />

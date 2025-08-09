@@ -318,10 +318,10 @@ function modelChange() {
             </div>
             <div v-else class="flex">
               <div v-if="scoped.row.main_job !== null">
-                <autoInputItem :title="scoped.row.main_job.name" target="job" @sent-mesg="receiveMesg" />
+                <autoInputItem :title="scoped.row.main_job.name" target="job" placeholder="选择岗位" @sent-mesg="receiveMesg" />
               </div>
               <div v-else>
-                <autoInputItem title="" target="job" @sent-mesg="receiveMesg" />
+                <autoInputItem title="" target="job" placeholder="选择岗位" @sent-mesg="receiveMesg" />
               </div>
               <div class="ml-3 mt-1">
                 <el-icon v-if="isEdit" size="23" @click="editWork('job', scoped.$index)">

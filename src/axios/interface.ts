@@ -270,3 +270,23 @@ export function getWorkerPoint(config: any) {
     },
   })
 }
+
+export function exportDataModels(config: any) {
+  return request({
+    url: `/exportDataModels`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function tempJobSetWorker(config: any) {
+  return request({
+    url: `/tempJobSetWorker`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}

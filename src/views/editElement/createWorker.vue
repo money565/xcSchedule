@@ -174,7 +174,7 @@ function resetForm(formEl: FormInstance | undefined) {
         </div>
       </el-form-item>
       <el-form-item label="固定岗位">
-        <autoInputItem title="" target="job" class="w-60" @sent-mesg="receiveMesg" />
+        <autoInputItem title="" target="job" placeholder="选择岗位" class="w-60" @sent-mesg="receiveMesg" />
       </el-form-item>
     </el-form>
     <div class="grid justify-items-end mt-10">

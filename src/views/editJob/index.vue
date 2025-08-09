@@ -2,6 +2,7 @@
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
+import autoInputItem from '../editElement/autoInputItem.vue'
 import creatJob from './items/creatJob.vue'
 import noJobWokers from './items/noJobWokers.vue'
 import {
@@ -10,7 +11,9 @@ import {
   addWorkerToJob,
   createJobRefreshKey,
   createNewJobDialog,
+  currentJobId,
   currentPage,
+  currentTypes,
   deleteDialog,
   delWorkJob,
   docreateJob,
@@ -28,11 +31,17 @@ import {
   perPage,
   receiveMesg,
   type resultOpt,
+  selectedTempWorkers,
   selectWokers,
   showDelete,
   tableData,
   total,
 } from './publicData'
+
+function setTempJobWorker(value: { link: number, name: string }) {
+  selectedTempWorkers.value = value.link
+  console.log(value, currentJobId.value)
+}
 
 onMounted(() => {
   init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
@@ -122,7 +131,7 @@ onMounted(() => {
                 </div>
               </div>
               <div v-if="isEdit">
-                <el-icon size="25" @click="addWorker(scoped.row.id)">
+                <el-icon size="25" @click="addWorker(scoped.row.id, scoped.row.types)">
                   <svg-icon name="add" />
                 </el-icon>
               </div>
@@ -275,6 +284,7 @@ onMounted(() => {
     </div>
     <xt-dialog v-model="addWorkerDialog" title="添加工作人员" width="600" @confirm="addWorkerToJob" @cancel="addWorkerDialog = false">
       <div>
+        <autoInputItem v-if="currentTypes && (currentTypes.num === 4 || currentTypes.num === 5)" target="worker" title="" placeholder="请选择员工" @sent-mesg="setTempJobWorker" />
         <el-table :data="noJobWorkerList" style="width: 100%" @selection-change="selectWokers">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="name" label="姓名" width="80" />
