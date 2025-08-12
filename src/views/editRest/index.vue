@@ -166,77 +166,79 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div class="flex overflow-auto">
-      <div class="w-100% bg-#409EFF h-10 text-center font-sans font-bold text-#FFFFFF lh-10">
+  <div class="pb-50">
+    <div class="overflow-auto fixed w-100% z-99 top-0">
+      <div class=" bg-#409EFF h-10 text-center font-sans font-bold text-#FFFFFF lh-10">
         调休安排表
       </div>
     </div>
-    <el-calendar :range="allViewDate">
-      <template #header>
-        <div class="flex">
-          <div class="font-sans font-bold mt-1 mr-3 text-dark-50">
-            预览
+    <div class="mt-10">
+      <el-calendar :range="allViewDate">
+        <template #header>
+          <div class="flex">
+            <div class="font-sans font-bold mt-1 mr-3 text-dark-50">
+              预览
+            </div>
+            <div class="font-sans font-bold">
+              <el-input v-model="viewDays" type="number" :min="1" max="45" @blur="init" />
+            </div>
+            <div class="font-sans font-bold mt-1 ml-3 text-dark-50">
+              天内的休假表
+            </div>
           </div>
-          <div class="font-sans font-bold">
-            <el-input v-model="viewDays" type="number" :min="1" max="45" @blur="init" />
+        </template>
+        <template #date-cell="{ data }">
+          <div v-if="timeArray.hasOwnProperty(data.day)" class="text-gray-500 font-sans font-600 w-100%">
+            <div
+              class="w-97% bg-blue-500 rounded-md p-1 text-light-50"
+              :class="{ 'bg-green-500': isWeekend(data.day), 'bg-red-400': festival.includes(data.day) }"
+              @click="setFestival(data.day)"
+            >
+              {{ data.day }} {{ getWeekday(data.day) }}
+            </div>
+            <div class="mt-2">
+              <autoInputItem :key="queryRefreshKey" title="" target="worker_rest" placeholder="选择要调休的员工" :current-date="data.day" @sent-mesg="(value) => addRestMan(value, data.day)" />
+            </div>
+            <div>
+              <el-card class="w-99% mt-2 h-22 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div class="ml-1">
+                  <el-tag
+                    v-for="item in timeArray[data.day]"
+                    :key="item"
+                    type="primary"
+                    class="ml-1 mt-1 w-13.3 truncate"
+                    @click="delRestMan(item, data.day)"
+                  >
+                    {{ String(item.value).split('-')[0] }}
+                  </el-tag>
+                </div>
+              </el-card>
+            </div>
           </div>
-          <div class="font-sans font-bold mt-1 ml-3 text-dark-50">
-            天内的休假表
-          </div>
-        </div>
-      </template>
-      <template #date-cell="{ data }">
-        <div v-if="timeArray.hasOwnProperty(data.day)" class="text-gray-500 font-sans font-600 w-100%">
-          <div
-            class="w-97% bg-blue-500 rounded-md p-1 text-light-50"
-            :class="{ 'bg-green-500': isWeekend(data.day), 'bg-red-400': festival.includes(data.day) }"
-            @click="setFestival(data.day)"
-          >
-            {{ data.day }} {{ getWeekday(data.day) }}
-          </div>
-          <div class="mt-2">
-            <autoInputItem :key="queryRefreshKey" title="" target="worker_rest" @sent-mesg="(value) => addRestMan(value, data.day)" />
-          </div>
-          <div>
-            <el-card class="w-99% mt-2 h-22 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div v-else class="text-gray-200 font-sans font-semibold">
+            <div v-if="playback.hasOwnProperty(data.day)">
+              <div class="w-97% bg-gray-300 rounded-md p-1 text-light-50">
+                {{ data.day }} {{ getWeekday(data.day) }}
+              </div>
+
               <div class="ml-1">
                 <el-tag
-                  v-for="item in timeArray[data.day]"
+                  v-for="item in playback[data.day]"
                   :key="item"
-                  type="primary"
+                  type="info"
                   class="ml-1 mt-1 w-13.3 truncate"
-                  @click="delRestMan(item, data.day)"
                 >
                   {{ String(item.value).split('-')[0] }}
                 </el-tag>
               </div>
-            </el-card>
-          </div>
-        </div>
-        <div v-else class="text-gray-200 font-sans font-semibold">
-          <div v-if="playback.hasOwnProperty(data.day)">
-            <div class="w-97% bg-gray-300 rounded-md p-1 text-light-50">
-              {{ data.day }} {{ getWeekday(data.day) }}
             </div>
-
-            <div class="ml-1">
-              <el-tag
-                v-for="item in playback[data.day]"
-                :key="item"
-                type="info"
-                class="ml-1 mt-1 w-13.3 truncate"
-              >
-                {{ String(item.value).split('-')[0] }}
-              </el-tag>
+            <div v-else>
+              {{ data.day }}
             </div>
           </div>
-          <div v-else>
-            {{ data.day }}
-          </div>
-        </div>
-      </template>
-    </el-calendar>
+        </template>
+      </el-calendar>
+    </div>
   </div>
 </template>
 

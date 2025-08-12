@@ -125,7 +125,7 @@ onMounted(() => {
       <el-table-column label="替岗人员" width="300">
         <template #default="scoped">
           <div>
-            <autoInputItem v-if="scoped.row.replace_edit" :key="refreshKey" target="worker" title="" @sent-mesg="receiveMesg" />
+            <autoInputItem v-if="scoped.row.replace_edit" :key="refreshKey" target="worker" placeholder="选择员工" title="" @sent-mesg="receiveMesg" />
           </div>
           <div class="flex">
             <div v-if="scoped.row.replacementList.length !== 0" class="flex">

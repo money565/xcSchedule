@@ -179,7 +179,7 @@ onMounted(() => {
       </div>
     </el-form-item>
     <el-form-item label="固定岗位员工">
-      <autoInputItem title="" target="worker" class="w-70" @sent-mesg="receiveData" />
+      <autoInputItem title="" target="worker" class="w-70" placeholder="选择员工" @sent-mesg="receiveData" />
     </el-form-item>
     <el-form-item label="限制">
       <el-select v-model="form.limit" placeholder="选择工作限制" class="w-70" @change="sendMesg(9)">

@@ -1,11 +1,11 @@
 <!-- eslint-disable no-alert -->
 <script setup lang="ts">
 import type { UploadFile, UploadProps, UploadRawFile } from 'element-plus'
+import { exportDataModels } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { TXURL } from '@/webConfig'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { downLoadModels } from './itemFuns'
 
 const props = defineProps({
   title: String,
@@ -154,6 +154,22 @@ function toEdit() {
       name: 'replace',
     })
   }
+}
+
+function downLoadModels(target: string) {
+  const param = {
+    pid: acs.currentProject,
+    target,
+  }
+  exportDataModels(param).then(({ data: res }) => {
+    const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
+    const downloadUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = 'pbb'
+    link.click()
+    URL.revokeObjectURL(downloadUrl)
+  })
 }
 </script>
 

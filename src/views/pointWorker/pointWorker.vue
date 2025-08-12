@@ -267,7 +267,7 @@ function deletePointWorker(id: number) {
             员工：
           </div>
           <div>
-            <autoInputItem title="" target="worker" style="width: 240px" @sent-mesg="(value) => receivePointWorker(value, index)" />
+            <autoInputItem title="" target="worker" placeholder="选择员工" style="width: 240px" @sent-mesg="(value) => receivePointWorker(value, index)" />
           </div>
         </div>
         <div class="m-2 flex">

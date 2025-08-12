@@ -1,5 +1,5 @@
 /* eslint-disable no-alert */
-import { changeJob, createJob, deleteJob, delWorkerJob, getJobByProject, getJobTypesChoices, getLimitChoices, setWorkerJob } from '@/axios/interface'
+import { changeJob, createJob, deleteJob, delWorkerJob, getJobByProject, getJobTypesChoices, getLimitChoices, setWorkerJob, tempJobSetWorker } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 
 const acs = useAppCacheStore()
@@ -114,6 +114,7 @@ export const noJobRefresh = ref(0)
 export const tableData = ref<jonOpt[]>([])
 export const addWorkerDialog = ref<boolean>(false)
 export const selectedWorkers = ref<workerListOpt[]>([])
+export const selectedTempWorkers = ref()
 export const currentJobId = ref<number>()
 export const currentPage = ref(1)
 export const perPage = 12
@@ -121,6 +122,7 @@ export const total = ref(0)
 export const isEdit = ref(false)
 export const deleteDialog = ref(false)
 export const deleteIndex = ref<number>(-1)
+export const currentTypes = ref<{ num: number, name: string }>()
 
 export const createNewJobDialog = ref(false)
 const form = ref()
@@ -255,7 +257,8 @@ export function delWorkJob(wid: number) {
   })
 }
 
-export function addWorker(jid: number) {
+export function addWorker(jid: number, types: { num: number, name: string }) {
+  currentTypes.value = types
   currentJobId.value = jid
   addWorkerDialog.value = true
 }
@@ -265,21 +268,37 @@ export function selectWokers(rows: any) {
 }
 
 export function addWorkerToJob() {
-  const wl = []
-  for (const i in selectedWorkers.value) {
-    wl.push(selectedWorkers.value[i].id)
-  }
-  setWorkerJob({
-    jid: currentJobId.value,
-    wl,
-  }).then(() => {
-    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
-      tableData.value = res.jobList
-      total.value = res.total
+  if (currentTypes.value && (currentTypes.value.num === 4 || currentTypes.value.num === 5)) {
+    const param = {
+      jid: currentJobId.value,
+      wid: selectedTempWorkers.value,
+    }
+    tempJobSetWorker(param).then(() => {
+      init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+        tableData.value = res.jobList
+        total.value = res.total
+      })
+      noJobRefresh.value = new Date().getTime()
+      addWorkerDialog.value = false
     })
-    noJobRefresh.value = new Date().getTime()
-    addWorkerDialog.value = false
-  })
+  }
+  else {
+    const wl = []
+    for (const i in selectedWorkers.value) {
+      wl.push(selectedWorkers.value[i].id)
+    }
+    setWorkerJob({
+      jid: currentJobId.value,
+      wl,
+    }).then(() => {
+      init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+        tableData.value = res.jobList
+        total.value = res.total
+      })
+      noJobRefresh.value = new Date().getTime()
+      addWorkerDialog.value = false
+    })
+  }
 }
 
 export function pageChange(page: number) {
