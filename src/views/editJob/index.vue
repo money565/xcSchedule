@@ -2,8 +2,10 @@
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
+import { deleteConvert, setJobConvert } from '@/axios/interface'
 import creatJob from './items/creatJob.vue'
 import noJobWokers from './items/noJobWokers.vue'
+import setSupport from './items/setSupport.vue'
 import {
   addWorker,
   addWorkerDialog,
@@ -19,6 +21,7 @@ import {
   init,
   isEdit,
   jobTypeList,
+  type jonOpt,
   limitList,
   modelChange,
   modelCreate,
@@ -34,6 +37,94 @@ import {
   total,
 } from './publicData'
 
+const setConvertTimeDialog = ref(false)
+const setConvertTimeTitle = ref('')
+const setConvertTimeFeq = ref(1)
+const setConvertTimeList = ref<{ start: string, end: string }[]>([])
+const setConvertTimeJid = ref()
+const hasConvertTime = ref(false)
+function setConvertTime(row: jonOpt) {
+  setConvertTimeList.value = []
+  setConvertTimeFeq.value = 1
+  setConvertTimeJid.value = row.id
+  if (row.convert !== null) {
+    setConvertTimeFeq.value = row.convert!.feq
+    setConvertTimeList.value = row.convert!.timeList
+    hasConvertTime.value = true
+  }
+  else {
+    setConvertTimeList.value = [{
+      start: row.startTime,
+      end: row.endTime,
+    }]
+    hasConvertTime.value = false
+    addConvertTime()
+  }
+  setConvertTimeTitle.value = `设置${row.area}-${row.name}岗位的可变时间`
+  setConvertTimeDialog.value = true
+}
+
+function deleteConvertByJid() {
+  deleteConvert(setConvertTimeJid.value).then(() => {
+    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+      tableData.value = res.jobList
+      total.value = res.total
+      setConvertTimeDialog.value = false
+    })
+  })
+}
+
+function addConvertTime() {
+  setConvertTimeList.value.push({
+    start: '',
+    end: '',
+  })
+}
+
+function minConvertTime(index: number) {
+  setConvertTimeList.value.splice(index, 1)
+}
+
+function uploadData() {
+  for (const i in setConvertTimeList.value) {
+    if (setConvertTimeList.value[i].start === '' || setConvertTimeList.value[i].start === null || setConvertTimeList.value[i].start === undefined) {
+      alert('请填写所有时间段')
+      return null
+    }
+    const s = setConvertTimeList.value[i].start.split(':')
+    const e = setConvertTimeList.value[i].end.split(':')
+    if (s[0] > e[0]) {
+      alert(`第${Number(i) + 1}行，开始时间不得大于结束时间`)
+      return null
+    }
+    else {
+      if (s[0] === e[0]) {
+        if (s[1] > e[1]) {
+          alert(`第${Number(i) + 1}行，开始时间不得大于结束时间`)
+          return null
+        }
+      }
+    }
+  }
+  if (setConvertTimeFeq.value === null) {
+    alert('请填写循环周期')
+    return null
+  }
+  const params = {
+    jid: setConvertTimeJid.value,
+    feq: setConvertTimeFeq.value,
+    timeList: setConvertTimeList.value,
+  }
+  setJobConvert(params).then(() => {
+    init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
+      tableData.value = res.jobList
+      total.value = res.total
+      setConvertTimeDialog.value = false
+    })
+  })
+}
+
+const showSetSupportDialog = ref(false)
 onMounted(() => {
   init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
     tableData.value = res.jobList
@@ -55,6 +146,9 @@ onMounted(() => {
       </el-button>
       <el-button @click="modelCreate">
         创建岗位
+      </el-button>
+      <el-button type="success" @click="showSetSupportDialog = true">
+        设置支援岗位
       </el-button>
     </div>
     <div class="flex">
@@ -186,6 +280,21 @@ onMounted(() => {
               </div>
             </template>
           </el-table-column>
+          <el-table-column label="岗位时间变动" width="190">
+            <template #default="scoped">
+              <div v-if="scoped.row.convert === null">
+                <el-button type="primary" link @click="setConvertTime(scoped.row)">
+                  无可变时间
+                </el-button>
+              </div>
+              <div v-else class="cursor-pointer text-green-700" @click="setConvertTime(scoped.row)">
+                <div>周期：每{{ scoped.row.convert.feq }}天变换一次</div>
+                <div v-for="(item, index) in scoped.row.convert.timeList" :key="index">
+                  {{ item.start }} - {{ item.end }}
+                </div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="岗位期间" width="120">
             <template #default="scoped">
               <div class="flex">
@@ -297,6 +406,57 @@ onMounted(() => {
     <XtDialog v-model="createNewJobDialog" title="新建工作岗位" @cancel="createNewJobDialog = false" @confirm="docreateJob">
       <div>
         <creatJob :key="createJobRefreshKey" @send-mesg="receiveMesg" />
+      </div>
+    </XtDialog>
+    <XtDialog v-model="setConvertTimeDialog" :title="setConvertTimeTitle" @cancel="setConvertTimeDialog = false" @confirm="uploadData">
+      <div class="max-h-100 overflow-auto">
+        <div class="flex">
+          <div>
+            每<el-input-number v-model="setConvertTimeFeq" :min="1" :max="365" class="ml-2 mr-2" />天变动一次
+          </div>
+          <div>
+            <el-button v-if="hasConvertTime" type="danger" class="ml-3" @click="deleteConvertByJid">
+              删除该岗位时间变换
+            </el-button>
+          </div>
+        </div>
+        <div class="mt-5">
+          变动循环时间
+        </div>
+
+        <div v-for="(item, index) in setConvertTimeList" :key="index">
+          <div class="flex gap-4 mt-3">
+            <el-time-select
+              v-model="item.start"
+              style="width: 150px"
+              start="08:00"
+              step="00:15"
+              end="23:30"
+              placeholder="开始"
+              format="HH:mm:ss"
+            />
+            <el-time-select
+              v-model="item.end"
+              style="width: 150px"
+              start="08:00"
+              step="00:15"
+              end="23:30"
+              placeholder="结束"
+              format="HH:mm:ss"
+            />
+            <el-button class="text-6" @click="addConvertTime">
+              +
+            </el-button>
+            <el-button v-if="setConvertTimeList.length > 2" class="text-6" @click="minConvertTime(index)">
+              -
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </XtDialog>
+    <XtDialog v-model="showSetSupportDialog" title="设置岗位支援" width="1000">
+      <div>
+        <setSupport />
       </div>
     </XtDialog>
   </div>

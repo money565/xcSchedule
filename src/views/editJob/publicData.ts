@@ -32,6 +32,18 @@ export interface jonOpt {
   start_edit?: boolean
   end_edit?: boolean
   replacementList?: { link: number, value: string }[]
+  // eslint-disable-next-line style/member-delimiter-style
+  convert?: { feq: number, timeList: {
+    start: string
+    end: string
+  }[] } | null
+  support: {
+    job: number
+    supportedJob: number
+    start: string
+    end: string
+    feq: number
+  } | null
 }
 
 export interface resultOpt {
@@ -85,6 +97,8 @@ export function init(start: number, end: number, replace: number = 0): Promise<r
           start_edit: false,
           end_edit: false,
           replacementList: res.result[i].replacementList,
+          convert: res.result[i].convert,
+          support: res.result[i].support,
         })
       }
 

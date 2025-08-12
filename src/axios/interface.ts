@@ -270,3 +270,20 @@ export function getWorkerPoint(config: any) {
     },
   })
 }
+
+export function setJobConvert(config: any) {
+  return request({
+    url: `/setJobConvert`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function deleteConvert(jid: number) {
+  return request({
+    url: `/deleteConvert/${jid}`,
+    method: 'get',
+  })
+}
