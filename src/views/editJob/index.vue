@@ -2,6 +2,7 @@
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
+import { deleteConvert, setJobConvert } from '@/axios/interface'
 import creatJob from './items/creatJob.vue'
 import noJobWokers from './items/noJobWokers.vue'
 import setSupport from './items/setSupport.vue'
