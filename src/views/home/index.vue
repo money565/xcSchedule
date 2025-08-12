@@ -50,7 +50,6 @@ async function getSchedule() {
         worker_price_time.value = res.worker_price_time
         job_leak.value = res.job_leak
         worker_leak.value = res.worker_leak
-        console.log(worker_price_time.value, job_leak.value, worker_leak.value)
         const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
         const downloadUrl = URL.createObjectURL(blob)
         const link = document.createElement('a')

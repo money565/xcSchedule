@@ -3,6 +3,7 @@
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
 import { deleteConvert, setJobConvert } from '@/axios/interface'
+import autoInputItem from '../editElement/autoInputItem.vue'
 import creatJob from './items/creatJob.vue'
 import noJobWokers from './items/noJobWokers.vue'
 import setSupport from './items/setSupport.vue'
@@ -133,6 +134,9 @@ function uploadData() {
 }
 
 const showSetSupportDialog = ref(false)
+function receiveSupportDatas(value: any) {
+  console.log('父组件收到', value)
+}
 onMounted(() => {
   init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
     tableData.value = res.jobList
@@ -392,7 +396,7 @@ onMounted(() => {
     </div>
     <xt-dialog v-model="addWorkerDialog" title="添加工作人员" width="600" @confirm="addWorkerToJob" @cancel="addWorkerDialog = false">
       <div>
-        <autoInputItem v-if="currentTypes && (currentTypes.num === 4 || currentTypes.num === 5)" target="worker" title="" placeholder="请选择员工" @sent-mesg="setTempJobWorker" />
+        <autoInputItem v-if="currentTypes && (currentTypes.num === 4 || currentTypes.num === 5)" target="worker" title="" placeholder="请选择员工" current-date="" @sent-mesg="setTempJobWorker" />
         <el-table :data="noJobWorkerList" style="width: 100%" @selection-change="selectWokers">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="name" label="姓名" width="80" />
@@ -465,7 +469,7 @@ onMounted(() => {
     </XtDialog>
     <XtDialog v-model="showSetSupportDialog" title="设置岗位支援" width="1000">
       <div>
-        <setSupport />
+        <setSupport @send-data="receiveSupportDatas" />
       </div>
     </XtDialog>
   </div>

@@ -40,6 +40,7 @@ function initThisPage() {
         limit_edit: res.jobList[i].limit_edit,
         replacementList: res.jobList[i].replacementList,
         replace_edit: false,
+        support: null,
       })
     }
 

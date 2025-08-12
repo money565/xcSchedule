@@ -288,6 +288,13 @@ export function deleteConvert(jid: number) {
   })
 }
 
+export function getJobSupport(pid: number) {
+  return request({
+    url: `/getJobSupport/${pid}`,
+    method: 'get',
+  })
+}
+
 export function tempJobSetWorker(config: any) {
   return request({
     url: `/tempJobSetWorker`,
