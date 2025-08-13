@@ -295,6 +295,13 @@ export function getJobSupport(pid: number) {
   })
 }
 
+export function deleteSupport(sid: number) {
+  return request({
+    url: `/deleteSupport/${sid}`,
+    method: 'get',
+  })
+}
+
 export function tempJobSetWorker(config: any) {
   return request({
     url: `/tempJobSetWorker`,
@@ -308,6 +315,16 @@ export function tempJobSetWorker(config: any) {
 export function exportDataModels(config: any) {
   return request({
     url: `/exportDataModels`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function setSupportedJob(config: any) {
+  return request({
+    url: `/setSupportedJob`,
     method: 'post',
     data: {
       ...config,

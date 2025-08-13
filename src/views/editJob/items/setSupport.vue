@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getJobSupport } from '@/axios/interface'
+import { deleteSupport, getJobSupport } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import autoInputItem from '@/views/editElement/autoInputItem.vue'
 
@@ -29,9 +29,10 @@ const acs = useAppCacheStore()
 const tableData = ref<supportOpt[]>([])
 function init() {
   getJobSupport(acs.currentProject).then(({ data: res }) => {
+    console.log(res)
     if (res.result.length > 0) {
       const temp: supportOpt[] = []
-      for (const i in res) {
+      for (const i in res.result) {
         temp.push({
           id: res.result[i].id,
           job: res.result[i].job,
@@ -43,9 +44,16 @@ function init() {
       }
       tableData.value = temp
     }
+    else {
+      tableData.value = []
+    }
   })
 }
-
+function deleteSupportById(row: supportOpt) {
+  deleteSupport(row.id).then(() => {
+    init()
+  })
+}
 onMounted(() => {
   init()
 })
@@ -63,14 +71,21 @@ watch(() => formData, (n) => {
       </div>
       <div>
         <el-table :data="tableData" class="w-100%">
-          <el-table-column prop="job.name" label="支援岗位" width="120" />
-          <el-table-column prop="supportedJob.name" label="被支援岗位" width="120" />
-          <el-table-column label="时间" width="120">
+          <el-table-column prop="job.name" label="支援岗位" width="170" />
+          <el-table-column prop="supportedJob.name" label="被支援岗位" width="170" />
+          <el-table-column label="时间" width="100">
             <template #default="scoped">
               <div>{{ scoped.row.start }}-{{ scoped.row.end }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="feq" label="周期(天)" width="100" />
+          <el-table-column prop="feq" label="周期(天)" width="80" />
+          <el-table-column prop="feq" label="操作" width="180">
+            <template #default="scoped">
+              <el-button type="danger" link @click="deleteSupportById(scoped.row)">
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>

@@ -2,7 +2,7 @@
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <!-- eslint-disable import/consistent-type-specifier-style -->
 <script setup lang="ts">
-import { deleteConvert, setJobConvert } from '@/axios/interface'
+import { deleteConvert, setJobConvert, setSupportedJob } from '@/axios/interface'
 import autoInputItem from '../editElement/autoInputItem.vue'
 import creatJob from './items/creatJob.vue'
 import noJobWokers from './items/noJobWokers.vue'
@@ -134,9 +134,19 @@ function uploadData() {
 }
 
 const showSetSupportDialog = ref(false)
+const supportItem = ref()
+const supportRefreshKey = ref(0)
 function receiveSupportDatas(value: any) {
-  console.log('父组件收到', value)
+  supportItem.value = value
 }
+
+function setSupportToServer() {
+  console.log(supportItem.value)
+  setSupportedJob(supportItem.value).then(() => {
+    supportRefreshKey.value = new Date().getTime()
+  })
+}
+
 onMounted(() => {
   init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1).then((res: resultOpt) => {
     tableData.value = res.jobList
@@ -467,9 +477,9 @@ onMounted(() => {
         </div>
       </div>
     </XtDialog>
-    <XtDialog v-model="showSetSupportDialog" title="设置岗位支援" width="1000">
+    <XtDialog v-model="showSetSupportDialog" title="设置岗位支援" width="1100" @cancel="showSetSupportDialog = false" @confirm="setSupportToServer">
       <div>
-        <setSupport @send-data="receiveSupportDatas" />
+        <setSupport :key="supportRefreshKey" @send-data="receiveSupportDatas" />
       </div>
     </XtDialog>
   </div>
