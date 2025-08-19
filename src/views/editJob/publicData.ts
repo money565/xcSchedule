@@ -31,6 +31,7 @@ export interface jonOpt {
   type_edit?: boolean
   start_edit?: boolean
   end_edit?: boolean
+  job_name_edit?: boolean
   replacementList?: { link: number, value: string }[]
   // eslint-disable-next-line style/member-delimiter-style
   convert?: { feq: number, timeList: {
@@ -96,6 +97,7 @@ export function init(start: number, end: number, replace: number = 0): Promise<r
           type_edit: false,
           start_edit: false,
           end_edit: false,
+          job_name_edit: false,
           replacementList: res.result[i].replacementList,
           convert: res.result[i].convert,
           support: res.result[i].support,
@@ -136,6 +138,7 @@ export function resetEdit() {
     tableData.value[i].type_edit = false
     tableData.value[i].start_edit = false
     tableData.value[i].end_edit = false
+    tableData.value[i].job_name_edit = false
   }
 }
 
@@ -162,6 +165,18 @@ export function editWork(target: string, index: number) {
     else {
       resetEdit()
       tableData.value[index].area_edit = true
+      updata = false
+    }
+  }
+
+  if (target === 'job_name') {
+    if (tableData.value[index].job_name_edit === true) {
+      strValue = tableData.value[index].name
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].job_name_edit = true
       updata = false
     }
   }
@@ -243,6 +258,7 @@ export function editWork(target: string, index: number) {
       tableData.value[index].area_edit = false
       tableData.value[index].limit_edit = false
       tableData.value[index].sn_edit = false
+      tableData.value[index].job_name_edit = false
     })
   }
 }
@@ -430,4 +446,23 @@ export function findUncoveredTimes(baseRange: string[], timeRanges: any[]) {
   }
 
   return uncovered.map(range => range.map(toTimeString))
+}
+
+export function calculateHours(startTime: any, endTime: any) {
+  // 解析时间字符串（格式：HH:mm）
+  const parseTime = (timeStr: { split: (arg0: string) => { (): any, new(): any, map: { (arg0: NumberConstructor): [any, any], new(): any } } }) => {
+    const [hours, minutes] = timeStr.split(':').map(Number)
+    const date = new Date()
+    date.setHours(hours, minutes, 0, 0)
+    return date
+  }
+
+  const start = Number(parseTime(startTime))
+  const end = Number(parseTime(endTime))
+
+  // 计算时间差（毫秒），并转换为小时
+  const diffMs = end - start
+  const diffHours = diffMs / (1000 * 60 * 60)
+
+  return diffHours
 }

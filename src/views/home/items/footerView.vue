@@ -17,6 +17,7 @@ interface rulesOpt {
 }
 const acs = useAppCacheStore()
 const rules = ref<rulesOpt[]>([])
+const showMore = ref(false)
 function init() {
   getEditRuleByProject(acs.currentProject).then(({ data: res }) => {
     rules.value = res.result
@@ -31,30 +32,45 @@ onMounted(() => {
 <template>
   <div>
     <el-card class="w-1080px rounded-1rem">
-      <div v-for="(item, index) in rules" :key="index" class="flex mt-5">
-        <div class="font-sans font-bold w-30">
-          {{ item.conf_name }}
+      <div>
+        <div class="flex mt-3">
+          <div class="w-40">
+            工作日休息人数：
+          </div>
+          <div>
+            <el-input-number v-model="acs.rest_workDay" :min="1" :max="10" />
+          </div>
         </div>
-        <div class="ml-3 mt--2">
-          <checkboxView
-            v-if="item.conf_label.input_type === 'checkbox' && item.conf_label.options"
-            :rid="item.id"
-            :options="item.conf_label.options"
-            :value="item.conf_value"
-          />
-          <radioView
-            v-if="item.conf_label.input_type === 'radio' && item.conf_label.options"
-            :rid="item.id"
-            :options="item.conf_label.options"
-            :value="Number(item.conf_value)"
-          />
-          <inputView
-            v-if="item.conf_label.input_type === 'input'"
-            :rid="item.id"
-            :value="Number(item.conf_value)"
-          />
+        <div class="flex mt-3">
+          <div class="w-40">
+            周末调休人数：
+          </div>
+          <div>
+            <el-input-number v-model="acs.rest_weekend" :min="1" :max="10" />
+          </div>
+        </div>
+
+        <div class="flex mt-3">
+          <div class="w-40">
+            节日调休人数：
+          </div>
+          <div>
+            <el-input-number v-model="acs.rest_festival" :min="1" :max="10" />
+          </div>
+        </div>
+
+        <div class="flex mt-3">
+          <div class="w-40">
+            员工月休天数：
+          </div>
+          <div>
+            <el-input-number v-model="acs.daysOfAnnualLeave" :min="1" :max="10" />
+          </div>
         </div>
       </div>
+      <el-button class="mt-5" link type="primary" @click="showMore = !showMore">
+        {{ showMore ? '隐藏' : '显示更多规则' }}
+      </el-button>
     </el-card>
   </div>
 </template>

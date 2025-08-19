@@ -38,6 +38,10 @@ function handleCancel() {
 function handleConfirm() {
   emits('confirm')
 }
+
+function closeDialog() {
+  emits('cancel')
+}
 </script>
 
 <template>
@@ -52,6 +56,7 @@ function handleConfirm() {
     :width="width"
     :top="props.dialogTop"
     :show-close="props.showClose"
+    @closed="closeDialog"
   >
     <template #header>
       <div class="p-3 ml--4 mt--4 mr--12 bg-[linear-gradient(45deg,#1E90FF,#00BFFF)] font-600 text-white rounded-t-md">

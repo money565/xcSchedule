@@ -302,6 +302,13 @@ export function deleteSupport(sid: number) {
   })
 }
 
+export function getReplacementByJobID(pid: number) {
+  return request({
+    url: `/getReplacementByJobID/${pid}`,
+    method: 'get',
+  })
+}
+
 export function tempJobSetWorker(config: any) {
   return request({
     url: `/tempJobSetWorker`,
@@ -325,6 +332,26 @@ export function exportDataModels(config: any) {
 export function setSupportedJob(config: any) {
   return request({
     url: `/setSupportedJob`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function getScheduleResultTotable(config: any) {
+  return request({
+    url: `/getScheduleResult`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function changeWorkerTime(config: any) {
+  return request({
+    url: `/changeWorkerTime`,
     method: 'post',
     data: {
       ...config,

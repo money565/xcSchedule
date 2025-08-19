@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { makeScheduls } from '@/axios/interface'
+import { getScheduleResultTotable, makeScheduls } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { DateToStr } from '../editJob/publicData'
 import checkView from './items/checkView.vue'
@@ -16,8 +16,9 @@ const worker_price_time = ref<{
 }[]>([])
 const job_leak = ref({})
 const worker_leak = ref({})
+const router = useRouter()
+const loadingSchedule = ref(false)
 function orderMesgChange(value: { target: string, priceOrder: boolean }) {
-  console.log('相应排序')
   if (value.target === 'price') {
     if (value.priceOrder) {
       worker_price_time.value.sort((a, b) => a.price - b.price)
@@ -36,7 +37,7 @@ function orderMesgChange(value: { target: string, priceOrder: boolean }) {
     }
   }
 }
-async function getSchedule() {
+async function downloadSchedule() {
   if (acs.timeRange) {
     // const target = `f${new Date().getTime()}`
     const params = {
@@ -50,6 +51,7 @@ async function getSchedule() {
         worker_price_time.value = res.worker_price_time
         job_leak.value = res.job_leak
         worker_leak.value = res.worker_leak
+        console.log(worker_price_time.value, job_leak.value, worker_leak.value)
         const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
         const downloadUrl = URL.createObjectURL(blob)
         const link = document.createElement('a')
@@ -64,6 +66,59 @@ async function getSchedule() {
       // eslint-disable-next-line no-alert
       alert('下载失败，请重试')
     }
+  }
+  else {
+    // eslint-disable-next-line no-alert
+    alert('选择排班区间')
+  }
+}
+
+async function getSchedule() {
+  if (acs.timeRange) {
+    loadingSchedule.value = true
+    // const target = `f${new Date().getTime()}`
+    const params = {
+      pid: acs.currentProject,
+      start_data: DateToStr(acs.timeRange[0]),
+      end_data: DateToStr(acs.timeRange[1]),
+      target: 'ok',
+    }
+    try {
+      makeScheduls(params).then(({ data: res }) => {
+        acs.scheduleResultData = res.df
+        loadingSchedule.value = false
+        router.push({
+          name: 'scheduleResult',
+        })
+      })
+    }
+    catch (error) {
+      console.error('Error downloading CSV:', error)
+      // eslint-disable-next-line no-alert
+      alert('下载失败，请重试')
+    }
+  }
+  else {
+    // eslint-disable-next-line no-alert
+    alert('选择排班区间')
+  }
+}
+
+function readScheduleTable() {
+  if (acs.timeRange) {
+    const param = {
+      pid: acs.currentProject,
+      start_data: DateToStr(acs.timeRange[0]),
+      end_data: DateToStr(acs.timeRange[1]),
+    }
+    getScheduleResultTotable(param).then(({ data: res }) => {
+      console.log(res)
+      acs.scheduleResultData = res.df
+      loadingSchedule.value = false
+      router.push({
+        name: 'scheduleResult',
+      })
+    })
   }
   else {
     // eslint-disable-next-line no-alert
@@ -101,8 +156,13 @@ async function getSchedule() {
     <div class="grid place-items-center mt-8">
       <checkView />
     </div>
-    <div class="grid place-items-center mt-8">
-      <el-button type="primary" class="w-60 h-12" @click="getSchedule">
+    <div class="flex justify-center items-center gap-4 h-32 bg-gray-100">
+      <el-button type="warning" class="w-60 h-12" @click="downloadSchedule">
+        <div class="font-sans font-semibold ml-5 text-4">
+          生成下载版排班表
+        </div>
+      </el-button>
+      <el-button type="primary" class="w-60 h-12" :loading="loadingSchedule" @click="getSchedule">
         <div class="flex">
           <div>
             <el-icon size="25">
@@ -110,7 +170,19 @@ async function getSchedule() {
             </el-icon>
           </div>
           <div class="font-sans font-semibold ml-5 text-4 mt-1">
-            生成排班表
+            {{ loadingSchedule ? "正在生成排班表" : "生成排班表" }}
+          </div>
+        </div>
+      </el-button>
+      <el-button type="success" class="w-60 h-12" :loading="loadingSchedule" @click="readScheduleTable">
+        <div class="flex">
+          <div>
+            <el-icon size="25">
+              <SvgIcon name="read" />
+            </el-icon>
+          </div>
+          <div class="font-sans font-semibold ml-5 text-4 mt-1">
+            读取排班表
           </div>
         </div>
       </el-button>

@@ -11,6 +11,7 @@ import {
   addWorker,
   addWorkerDialog,
   addWorkerToJob,
+  calculateHours,
   createJobRefreshKey,
   createNewJobDialog,
   currentJobId,
@@ -224,7 +225,30 @@ onMounted(() => {
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="name" label="岗位名称" width="230" />
+          <el-table-column props="name" label="岗位名称" width="230">
+            <template #default="scoped">
+              <div v-if="scoped.row.job_name_edit === false" class="flex">
+                <div>
+                  {{ scoped.row.name }}
+                </div>
+                <div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('job_name', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else class="flex">
+                <div>
+                  <el-input v-model="scoped.row.name" class="w-20" />
+                </div>
+                <div class="ml-3 mt-1">
+                  <el-icon v-if="isEdit" size="23" @click="editWork('job_name', scoped.$index)">
+                    <svg-icon name="ok" />
+                  </el-icon>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="岗位员工" width="120">
             <template #default="scoped">
               <div v-if="scoped.row.workerList && scoped.row.workerList.length > 0">
@@ -300,6 +324,11 @@ onMounted(() => {
                   </el-icon>
                 </div>
               </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="工时">
+            <template #default="scoped">
+              {{ calculateHours(scoped.row.startTime, scoped.row.endTime) }}
             </template>
           </el-table-column>
           <el-table-column label="岗位时间变动" width="190">

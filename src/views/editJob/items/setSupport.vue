@@ -16,6 +16,7 @@ interface supportOpt {
   start: string
   end: string
   feq: number
+  cycledDelay: number
 }
 const emits = defineEmits(['sendData'])
 const formData = reactive({
@@ -24,6 +25,7 @@ const formData = reactive({
   start: '',
   end: '',
   feq: 1,
+  cycledDelay: 1,
 })
 const acs = useAppCacheStore()
 const tableData = ref<supportOpt[]>([])
@@ -40,6 +42,7 @@ function init() {
           start: res.result[i].start,
           end: res.result[i].end,
           feq: res.result[i].feq,
+          cycledDelay: res.result[i].cycledDelay,
         })
       }
       tableData.value = temp
@@ -71,15 +74,16 @@ watch(() => formData, (n) => {
       </div>
       <div>
         <el-table :data="tableData" class="w-100%">
-          <el-table-column prop="job.name" label="支援岗位" width="170" />
-          <el-table-column prop="supportedJob.name" label="被支援岗位" width="170" />
+          <el-table-column prop="job.name" label="支援岗位" width="160" />
+          <el-table-column prop="supportedJob.name" label="被支援岗位" width="160" />
           <el-table-column label="时间" width="100">
             <template #default="scoped">
               <div>{{ scoped.row.start }}-{{ scoped.row.end }}</div>
             </template>
           </el-table-column>
           <el-table-column prop="feq" label="周期(天)" width="80" />
-          <el-table-column prop="feq" label="操作" width="180">
+          <el-table-column prop="cycledDelay" label="开始日" width="100" />
+          <el-table-column label="操作" width="180">
             <template #default="scoped">
               <el-button type="danger" link @click="deleteSupportById(scoped.row)">
                 删除
@@ -158,6 +162,16 @@ watch(() => formData, (n) => {
           </div>
           <div>
             每<el-input-number v-model="formData.feq" :min="1" :max="10" class="w-30 ml-3 mr-3" />天支援一次
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="mt-5">
+          <div class="w-40">
+            开始日期
+          </div>
+          <div>
+            从第<el-input-number v-model="formData.cycledDelay" :min="0" :max="10" class="w-30 ml-3 mr-3" />天开始支援
           </div>
         </div>
       </div>

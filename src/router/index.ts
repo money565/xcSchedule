@@ -33,6 +33,11 @@ const router = createRouter({
       name: 'pointWorker',
       component: () => import('@/views/pointWorker/pointWorker.vue'),
     },
+    {
+      path: '/scheduleResult',
+      name: 'scheduleResult',
+      component: () => import('@/views/scheduleResult/scheduleResultShow.vue'),
+    },
   ],
 })
 
