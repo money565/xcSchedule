@@ -12,9 +12,8 @@ const isHovering = ref()
 const workTimeChangeDialog = ref(false)
 const hoverTexts = ref('前四周工时')
 const replacementList = ref<number[]>([0])
-const popoverText = ref('危险！！！该岗位没有安排到员工')
+const popoverText = ref('')
 const popoverTitle = ref('')
-const savingDialog = ref(false)
 const tableRefreshKey = ref(0)
 const optionText = computed(() => {
   if (currentButton.value === 1 && workTimeCache.value.length === 0) {
@@ -66,24 +65,27 @@ function dohoverItem(item: any) {
       }
     }
     else {
-      for (const i in acs.scheduleResultData) {
-        for (const d in acs.scheduleResultData[i][item.date]) {
-          if (acs.scheduleResultData[i][item.date][d].jid) {
-            if (acs.scheduleResultData[i][item.date][d].mainJob === item.jid) {
-              popoverTitle.value = '替代岗位'
-              popoverText.value = `替代 ${acs.scheduleResultData[i][item.date][d].workerName} 的岗位`
-            }
-          }
+      let isin = false
+      for (const x in acs.scheduleResultData) {
+        if (item.jid === acs.scheduleResultData[x].id) {
+          popoverTitle.value = '替代岗位'
+          popoverText.value = `替代 ${acs.scheduleResultData[x].workName} 的岗位`
+          isin = true
+        }
+      }
+      if (!isin) {
+        if (item.state === 2) {
+          popoverTitle.value = '休息'
+          popoverText.value = `休息`
+        }
+        else {
+          popoverTitle.value = '节假日增岗'
+          popoverText.value = `节假日增岗`
         }
       }
     }
   }
   isHovering.value = item
-}
-
-function upLoadWorkTimeDate() {
-  workTimeCache.value = []
-  workTimeChangeDialog.value = false
 }
 
 function closeWorkTimeDate() {
@@ -95,21 +97,22 @@ function closeWorkTimeDate() {
 onMounted(() => {
   for (const i in acs.scheduleResultData) {
     dateList.value.forEach((w) => {
-      for (const j in acs.scheduleResultData[i][w]) {
-        if (acs.scheduleResultData[i][w][j].state === 2) {
-          let hasReplace = false
-          for (const t in acs.scheduleResultData) {
-            for (const tj in acs.scheduleResultData[t][w]) {
-              if (acs.scheduleResultData[t][w][tj].jid === acs.scheduleResultData[i][w][j].mainJob) {
-                hasReplace = true
-                break
+      if (acs.scheduleResultData[i].job !== '') {
+        for (const j in acs.scheduleResultData[i][w]) {
+          if (acs.scheduleResultData[i][w][j].state === 2) {
+            let hasReplace = false
+            for (const t in acs.scheduleResultData) {
+              for (const tj in acs.scheduleResultData[t][w]) {
+                if (acs.scheduleResultData[t][w][tj].jid === acs.scheduleResultData[i][w][j].mainJob) {
+                  hasReplace = true
+                  break
+                }
               }
             }
-          }
-          if (!hasReplace) {
-            if (acs.scheduleResultData[i][w][j].mainJob) {
-              console.log('没有替休')
-              acs.scheduleResultData[i][w][j].noReplace = true
+            if (!hasReplace) {
+              if (acs.scheduleResultData[i][w][j].mainJob) {
+                acs.scheduleResultData[i][w][j].noReplace = true
+              }
             }
           }
         }
@@ -136,21 +139,21 @@ onMounted(() => {
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="job" label="岗位名称" width="180" fixed>
+      <el-table-column prop="job" label="岗位名称" width="150" fixed>
         <template #header>
           <div class="text-black">
             岗位名称
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="workTime" label="岗位时间" width="100" fixed>
+      <el-table-column prop="workTime" label="岗位时间" width="110" fixed>
         <template #header>
           <div class="text-black">
             岗位时间
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="workName" label="姓名" width="130" fixed>
+      <el-table-column prop="workName" label="姓名" width="80" fixed>
         <template #header>
           <div class="text-black">
             姓名
@@ -167,6 +170,16 @@ onMounted(() => {
           </el-tooltip>
         </template>
       </el-table-column>
+      <el-table-column prop="workerHour" label="工时" width="80" fixed>
+        <template #header>
+          <el-button type="primary" link>
+            <div class="font-sans font-semibold mb-1">
+              工时
+            </div>
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="workerPrice" label="成本" width="80" fixed />
 
       <el-table-column v-for="(item, index) in dateList" :key="index" :label="item" width="200">
         <template #header>
@@ -194,7 +207,7 @@ onMounted(() => {
                         placement="top-start"
                       >
                         <template #reference>
-                          <div :class="{ ' bg-red-400': i.noReplace === true }">
+                          <div :class="{ ' bg-red-400 font-sans': i.noReplace === true }">
                             休
                           </div>
                         </template>
@@ -204,7 +217,7 @@ onMounted(() => {
                       {{ i.workTime }}
                     </div>
 
-                    <div v-if="i.state === 3" class="bg-yellow-200 rounded-md p-2">
+                    <div v-if="i.state === 3" class="bg-yellow-200 rounded-md p-2 font-sans">
                       <el-popover
                         class="box-item"
                         :title="popoverTitle"
@@ -219,10 +232,10 @@ onMounted(() => {
                         </template>
                       </el-popover>
                     </div>
-                    <div v-if="i.state === 5" class="bg-red-200 rounded-md p-2 mt-2">
+                    <div v-if="i.state === 5" class="bg-red-200 rounded-md p-2 mt-2 font-sans">
                       {{ i.workTime }}({{ i.jobName }})
                     </div>
-                    <div v-if="i.state === 4" class=" bg-blue-400 rounded-md p-2 mt-2 text-light-50">
+                    <div v-if="i.state === 4" class=" bg-green-200 rounded-md p-2 mt-2 font-sans">
                       {{ i.workTime }}({{ i.jobName }})
                     </div>
                   </div>
@@ -252,11 +265,6 @@ onMounted(() => {
     </div>
     <xt-dialog v-model="workTimeChangeDialog" title="工时班次调整" width="900" :show-cancel="false" :show-confirm="false">
       <workTimeChange :work-time-cache="workTimeCache" @close="closeWorkTimeDate" />
-    </xt-dialog>
-    <xt-dialog v-model="savingDialog" title="正在保存中" width="900" :show-cancel="false" :show-confirm="false">
-      <div>
-        正在保存
-      </div>
     </xt-dialog>
   </div>
 </template>

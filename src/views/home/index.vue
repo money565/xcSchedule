@@ -2,6 +2,7 @@
 import { getScheduleResultTotable, makeScheduls } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { DateToStr } from '../editJob/publicData'
+import { setWorkerHourPrice } from '../scheduleResult/items/funs'
 import checkView from './items/checkView.vue'
 import footerView from './items/footerView.vue'
 import headerView from './items/headerView.vue'
@@ -83,7 +84,7 @@ function getSchedule() {
     }
     try {
       makeScheduls(params).then(({ data: res }) => {
-        acs.scheduleResultData = res.df
+        setWorkerHourPrice(res.df, res.wr, res.wp)
         loadingSchedule.value = false
         router.push({
           name: 'scheduleResult',
@@ -110,7 +111,7 @@ function readScheduleTable() {
       end_data: DateToStr(acs.timeRange[1]),
     }
     getScheduleResultTotable(param).then(({ data: res }) => {
-      acs.scheduleResultData = res.df
+      setWorkerHourPrice(res.df, res.wr, res.wp)
       loadingSchedule.value = false
       router.push({
         name: 'scheduleResult',

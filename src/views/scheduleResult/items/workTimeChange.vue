@@ -3,6 +3,7 @@ import type { workerCacheOpt } from './funs'
 import { changeWorkerTime, getScheduleResultTotable } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { DateToStr } from '@/views/editJob/publicData'
+import { setWorkerHourPrice } from './funs'
 
 interface Props {
   workTimeCache: workerCacheOpt[]
@@ -46,7 +47,7 @@ function confirmUp() {
         end_data: DateToStr(acs.timeRange[1]),
       }
       getScheduleResultTotable(param).then(({ data: res }) => {
-        acs.scheduleResultData = res.df
+        setWorkerHourPrice(res.df, res.wr, res.wp)
         loadingSchedule.value = false
         emits('close')
       })

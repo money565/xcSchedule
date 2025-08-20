@@ -358,3 +358,13 @@ export function changeWorkerTime(config: any) {
     },
   })
 }
+
+export function getWorkersWorkHour(config: any) {
+  return request({
+    url: `/getWorkersWorkHour`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
