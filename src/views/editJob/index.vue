@@ -14,7 +14,6 @@ import {
   calculateHours,
   createJobRefreshKey,
   createNewJobDialog,
-  currentJobId,
   currentPage,
   currentTypes,
   deleteDialog,
@@ -44,7 +43,6 @@ import {
 
 function setTempJobWorker(value: { link: number, name: string }) {
   selectedTempWorkers.value = value.link
-  console.log(value, currentJobId.value)
 }
 
 const setConvertTimeDialog = ref(false)
@@ -142,7 +140,6 @@ function receiveSupportDatas(value: any) {
 }
 
 function setSupportToServer() {
-  console.log(supportItem.value)
   setSupportedJob(supportItem.value).then(() => {
     supportRefreshKey.value = new Date().getTime()
   })

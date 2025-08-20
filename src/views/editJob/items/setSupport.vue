@@ -31,7 +31,6 @@ const acs = useAppCacheStore()
 const tableData = ref<supportOpt[]>([])
 function init() {
   getJobSupport(acs.currentProject).then(({ data: res }) => {
-    console.log(res)
     if (res.result.length > 0) {
       const temp: supportOpt[] = []
       for (const i in res.result) {

@@ -368,7 +368,6 @@ export function docreateJob() {
   }
 }
 export function receiveMesg(value: any) {
-  console.log('收到的上传消息', value)
   form.value = value
 }
 

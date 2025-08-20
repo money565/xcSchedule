@@ -37,7 +37,7 @@ function orderMesgChange(value: { target: string, priceOrder: boolean }) {
     }
   }
 }
-async function downloadSchedule() {
+function downloadSchedule() {
   if (acs.timeRange) {
     // const target = `f${new Date().getTime()}`
     const params = {
@@ -47,11 +47,9 @@ async function downloadSchedule() {
     }
     try {
       makeScheduls(params).then(({ data: res }) => {
-        console.log('排班结果', res)
         worker_price_time.value = res.worker_price_time
         job_leak.value = res.job_leak
         worker_leak.value = res.worker_leak
-        console.log(worker_price_time.value, job_leak.value, worker_leak.value)
         const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
         const downloadUrl = URL.createObjectURL(blob)
         const link = document.createElement('a')
@@ -61,8 +59,8 @@ async function downloadSchedule() {
         URL.revokeObjectURL(downloadUrl)
       })
     }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     catch (error) {
-      console.error('Error downloading CSV:', error)
       // eslint-disable-next-line no-alert
       alert('下载失败，请重试')
     }
@@ -73,7 +71,7 @@ async function downloadSchedule() {
   }
 }
 
-async function getSchedule() {
+function getSchedule() {
   if (acs.timeRange) {
     loadingSchedule.value = true
     // const target = `f${new Date().getTime()}`
@@ -92,8 +90,8 @@ async function getSchedule() {
         })
       })
     }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     catch (error) {
-      console.error('Error downloading CSV:', error)
       // eslint-disable-next-line no-alert
       alert('下载失败，请重试')
     }
@@ -112,7 +110,6 @@ function readScheduleTable() {
       end_data: DateToStr(acs.timeRange[1]),
     }
     getScheduleResultTotable(param).then(({ data: res }) => {
-      console.log(res)
       acs.scheduleResultData = res.df
       loadingSchedule.value = false
       router.push({

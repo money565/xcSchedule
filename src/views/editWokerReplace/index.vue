@@ -22,7 +22,6 @@ function exitEdit() {
 
 function initThisPage() {
   init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1, 1).then((res: resultOpt) => {
-    console.log(res)
     const temp: replaceOpt[] = []
     for (const i in res.jobList) {
       temp.push({

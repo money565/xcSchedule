@@ -96,14 +96,18 @@ async function submitUpload() {
     const fileId = generateFileId()
     formData.append('fileId', fileId)
 
-    const response = await axios.post(`${TXURL}/setScheduleJob/replace/${acs.currentProject}`, formData, {
+    // const response = await axios.post(`${TXURL}/setScheduleJob/replace/${acs.currentProject}`, formData, {
+    //   headers: {
+    //     'Content-Type': 'multipart/form-data',
+    //   },
+    // })
+    await axios.post(`${TXURL}/setScheduleJob/replace/${acs.currentProject}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
 
     ElMessage.success('文件上传成功')
-    console.log('上传响应:', response.data)
 
     // 上传成功后重置状态
     resetUploadState()
@@ -117,7 +121,7 @@ async function submitUpload() {
       }
     }
     catch (deleteError) {
-      console.error('删除上传失败的文件出错:', deleteError)
+      alert(`删除上传失败的文件出错:${deleteError}`)
     }
 
     ElMessage.error(error.response?.data?.message || '文件上传失败')

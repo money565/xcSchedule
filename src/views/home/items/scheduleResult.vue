@@ -30,7 +30,6 @@ const totalPrice = computed(() => {
 })
 function orderByPrice() {
   priceOrder.value = !priceOrder.value
-  console.log('单价排序', priceOrder.value)
   emits('order', {
     target: 'price',
     priceOrder: priceOrder.value,
@@ -38,7 +37,6 @@ function orderByPrice() {
 }
 function orderByWorkTimeOrder() {
   workTimeOrder.value = !workTimeOrder.value
-  console.log('工时排序', priceOrder.value)
   emits('order', {
     target: 'worktime',
     priceOrder: workTimeOrder.value,
