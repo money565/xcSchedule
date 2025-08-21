@@ -215,18 +215,54 @@ function exportToExcel() {
     })
     temp.push(param)
   })
-  // 1. 把 JSON 数据转为 worksheet
   const worksheet = XLSX.utils.json_to_sheet(temp)
-
-  // 2. 创建 workbook，并插入 worksheet
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, '数据')
-
-  // 3. 导出为 ArrayBuffer
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
-
-  // 4. 触发下载
   saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), '表格数据.xlsx')
+}
+
+function exportToPartA() {
+  console.log(acs.scheduleResultData)
+  dateList.value.forEach((w: string) => {
+    const temp: any[] = []
+    acs.scheduleResultData.forEach((e: any) => {
+      if (e.id !== '') {
+        const param: any = {
+          楼层: e.area,
+          人数: 1,
+          岗位: e.job,
+          姓名: '',
+          工作时间: e.workTime,
+        }
+        if (e[w][0].state === 2) {
+          for (const i in acs.scheduleResultData) {
+            if (e.id === acs.scheduleResultData[i][w][0].jid) {
+              param.姓名 = acs.scheduleResultData[i][w][0].workerName
+            }
+          }
+        }
+        else {
+          if (e[w][0].jid === e[w][0].mainJob) {
+            param.姓名 = e[w][0].workerName
+          }
+          else {
+            for (const i in acs.scheduleResultData) {
+              if (e.id === acs.scheduleResultData[i][w][0].jid) {
+                param.姓名 = acs.scheduleResultData[i][w][0].workerName
+              }
+            }
+          }
+        }
+        temp.push(param)
+      }
+    })
+    const worksheet = XLSX.utils.json_to_sheet(temp)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '数据')
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+    saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), `${w}表格数据.xlsx`)
+  })
 }
 
 onMounted(() => {
@@ -420,7 +456,7 @@ function reslove(resolve: (value: unknown) => void, reject: (reason?: any) => vo
       <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2" @click="exportToExcel">
         生成自用表格
       </el-button>
-      <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2">
+      <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2" @click="exportToPartA">
         生成提交表格
       </el-button>
       <div class="m-auto">
