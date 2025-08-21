@@ -368,3 +368,17 @@ export function getWorkersWorkHour(config: any) {
     },
   })
 }
+
+export function deleteAdjustWorkerTime(sid: number, pid: number) {
+  return request({
+    url: `/deleteAdjustWorkerTime/${sid}/${pid}`,
+    method: 'get',
+  })
+}
+
+export function changeWorkerJobInterface(sida: number, sidb: number) {
+  return request({
+    url: `/changeWorkerJob/${sida}/${sidb}`,
+    method: 'get',
+  })
+}

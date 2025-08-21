@@ -16,14 +16,17 @@
     "dayjs": "^1.11.13",
     "dingtalk-jsapi": "^3.0.45",
     "element-plus": "^2.9.3",
+    "file-saver": "^2.0.5",
     "pinia": "^2.3.1",
     "vconsole": "^3.15.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.1.0",
     "@tsconfig/node22": "^22.0.0",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^22.10.7",
     "@unocss/preset-uno": "^65.4.3",
     "@vitejs/plugin-vue": "^5.2.1",

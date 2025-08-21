@@ -19,7 +19,12 @@ export function setWorkerHourPrice(df: any, wr: any, wp: any) {
   acs.workerHour = wr
   acs.workerPrice = wp
   acs.scheduleResultData.forEach((e: { workerHour: any, workerID: string | number, workerPrice: any }) => {
-    e.workerHour = acs.workerHour[e.workerID]
-    e.workerPrice = acs.workerPrice[e.workerID]
+    try {
+      e.workerHour = acs.workerHour[e.workerID]
+      e.workerPrice = acs.workerPrice[e.workerID]
+    }
+    catch (error) {
+      console.log(error)
+    }
   })
 }

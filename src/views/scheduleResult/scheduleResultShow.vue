@@ -1,7 +1,11 @@
 <!-- eslint-disable unused-imports/no-unused-vars -->
 <script lang="ts" setup>
-import { getReplacementByJobID } from '@/axios/interface'
+import { changeWorkerJobInterface, deleteAdjustWorkerTime, getReplacementByJobID, getScheduleResultTotable } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
+import { saveAs } from 'file-saver'
+import * as XLSX from 'xlsx'
+import { DateToStr } from '../editJob/publicData'
+import { setWorkerHourPrice } from './items/funs'
 import workTimeChange from './items/workTimeChange.vue'
 
 const acs = useAppCacheStore()
@@ -10,11 +14,15 @@ const currentButton = ref()
 const workTimeCache: any = ref([])
 const isHovering = ref()
 const workTimeChangeDialog = ref(false)
+const workJobChangeDialog = ref(false)
 const hoverTexts = ref('前四周工时')
 const replacementList = ref<number[]>([0])
 const popoverText = ref('')
 const popoverTitle = ref('')
 const tableRefreshKey = ref(0)
+const workTimeRadioValue = ref(1)
+const deleteLoadingState = ref(false)
+const changeWorkerJob = ref<any[]>([])
 const optionText = computed(() => {
   if (currentButton.value === 1 && workTimeCache.value.length === 0) {
     return '请选择需要调整的人员'
@@ -28,22 +36,48 @@ const optionText = computed(() => {
     }
   }
 })
-function selectTag(row: any, item: any) {
-  if (currentButton.value === 1) {
-    if (workTimeCache.value.length === 0) {
-      workTimeCache.value = [item]
-      getReplacementByJobID(item.jid).then(({ data: res }) => {
-        replacementList.value = res.result
+
+function init() {
+  return new Promise ((resolve, _reject) => {
+    if (acs.timeRange) {
+      const param = {
+        pid: acs.currentProject,
+        start_data: DateToStr(acs.timeRange[0]),
+        end_data: DateToStr(acs.timeRange[1]),
+      }
+      getScheduleResultTotable(param).then(({ data: res }) => {
+        setWorkerHourPrice(res.df, res.wr, res.wp)
+        perpareDatas()
+        resolve('ok')
       })
     }
-    else {
-      if (item.date !== workTimeCache.value[0].date) {
-        return null
+  })
+}
+
+function selectTag(row: any, item: any) {
+  if (currentButton.value === 1) {
+    if (item.state === 1) {
+      if (workTimeCache.value.length === 0) {
+        workTimeCache.value = [item]
+        getReplacementByJobID(item.jid).then(({ data: res }) => {
+          replacementList.value = res.result
+        })
       }
-      // TODO写入变更班次的逻辑
-      workTimeCache.value.push(item)
-      currentButton.value = undefined
-      workTimeChangeDialog.value = true
+      else {
+        if (item.date !== workTimeCache.value[0].date) {
+          return null
+        }
+        // TODO写入变更班次的逻辑
+        workTimeCache.value.push(item)
+        currentButton.value = undefined
+        workTimeChangeDialog.value = true
+      }
+    }
+  }
+  if (currentButton.value === 2) {
+    changeWorkerJob.value.push(item)
+    if (changeWorkerJob.value.length > 1) {
+      workJobChangeDialog.value = true
     }
   }
 }
@@ -94,7 +128,7 @@ function closeWorkTimeDate() {
   tableRefreshKey.value = new Date().getTime()
 }
 
-onMounted(() => {
+function perpareDatas() {
   for (const i in acs.scheduleResultData) {
     dateList.value.forEach((w) => {
       if (acs.scheduleResultData[i].job !== '') {
@@ -119,7 +153,89 @@ onMounted(() => {
       }
     })
   }
+}
+
+function deleteChangedWorkerHour(sid: number) {
+  deleteLoadingState.value = true
+  deleteAdjustWorkerTime(sid, acs.currentProject).then(() => {
+    init().then(() => {
+      deleteLoadingState.value = false
+      workJobChangeDialog.value = false
+    })
+  })
+  console.log(sid)
+}
+
+function closeWorkJobChangeDialog() {
+  changeWorkerJob.value = []
+  workJobChangeDialog.value = false
+  currentButton.value = undefined
+}
+
+function upLoadChangeJob() {
+  changeWorkerJobInterface(changeWorkerJob.value[0].sid, changeWorkerJob.value[1].sid).then(() => {
+    init().then(() => {
+      deleteLoadingState.value = false
+      workJobChangeDialog.value = false
+    })
+  })
+}
+
+function exportToExcel() {
+  const temp: any[] = []
+  acs.scheduleResultData.forEach((e: any) => {
+    const param: any = {
+      楼层: e.area,
+      岗位名称: e.job,
+      姓名: e.workName,
+    }
+    dateList.value.forEach((w: string) => {
+      let mesg = ''
+      for (const t in e[w]) {
+        if (e[w][t].state === 2) {
+          mesg = '休息/'
+        }
+        else {
+          if (e[w][t].jid === e[w][t].mainJob) {
+            mesg = `${mesg + e[w][t].workTime}/`
+          }
+          else {
+            if (mesg === '') {
+              mesg = `(${e[w][t].jobName}-${e[w][t].workTime})/`
+            }
+            else {
+              mesg = `${mesg}(${e[w][t].jobName}-${e[w][t].workTime})/`
+            }
+          }
+        }
+      }
+      if (mesg)
+        mesg = mesg.slice(0, -1)
+      param[w] = mesg
+    })
+    temp.push(param)
+  })
+  // 1. 把 JSON 数据转为 worksheet
+  const worksheet = XLSX.utils.json_to_sheet(temp)
+
+  // 2. 创建 workbook，并插入 worksheet
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '数据')
+
+  // 3. 导出为 ArrayBuffer
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+
+  // 4. 触发下载
+  saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), '表格数据.xlsx')
+}
+
+onMounted(() => {
+  perpareDatas()
 })
+
+function reslove(resolve: (value: unknown) => void, reject: (reason?: any) => void): void {
+  throw new Error('Function not implemented.')
+}
 </script>
 
 <template>
@@ -172,11 +288,28 @@ onMounted(() => {
       </el-table-column>
       <el-table-column prop="workerHour" label="工时" width="80" fixed>
         <template #header>
-          <el-button type="primary" link>
-            <div class="font-sans font-semibold mb-1">
-              工时
-            </div>
-          </el-button>
+          <el-popover
+            class="box-item"
+            placement="top-start"
+          >
+            <template #reference>
+              <el-button type="primary" link>
+                <div class="font-sans font-semibold mb-1">
+                  工时
+                </div>
+              </el-button>
+            </template>
+            <el-radio-group v-model="workTimeRadioValue">
+              <!-- works when >=2.6.0, recommended ✔️ not work when <2.6.0 ❌ -->
+              <el-radio :value="1">
+                周
+              </el-radio>
+              <!-- works when <2.6.0, deprecated act as value when >=3.0.0 -->
+              <el-radio :value="2">
+                月
+              </el-radio>
+            </el-radio-group>
+          </el-popover>
         </template>
       </el-table-column>
       <el-table-column prop="workerPrice" label="成本" width="80" fixed />
@@ -197,8 +330,8 @@ onMounted(() => {
               @mouseenter="dohoverItem(i)"
             >
               <div :class="{ ' text-red-700 text-5 font-sans font-semibold': workTimeCache.length === 1 ? i.date === workTimeCache[0].date && replacementList.includes(i.wid) : false }">
-                <div :class="{ ' bg-blue-400 text-light-50 p-2 rounded-md': workTimeCache.length > 0 ? workTimeCache[0].date === i.date && i.wid === workTimeCache[0].wid : false }">
-                  <div>
+                <div :class="{ ' bg-blue-400 text-light-50 p-2 rounded-md': workTimeCache.length > 0 && workTimeCache[0].date === i.date && i.wid === workTimeCache[0].wid && i.state === 1 ? true : false }">
+                  <div :class="{ 'bg-yellow-300 rounded-md p-2 cursor-pointer': currentButton === 2 && (isHovering.sid === i.sid && changeWorkerJob.length === 0 || changeWorkerJob.length > 0 && (changeWorkerJob[0].sid && changeWorkerJob[0].sid === i.sid) || isHovering.sid === i.sid && changeWorkerJob[0].date === i.date) }">
                     <div v-if="i.state === 2" class="bg-teal-300 p-2 rounded-md text-light-50 w-100%">
                       <el-popover
                         class="box-item"
@@ -217,7 +350,22 @@ onMounted(() => {
                       {{ i.workTime }}
                     </div>
 
-                    <div v-if="i.state === 3" class="bg-yellow-200 rounded-md p-2 font-sans">
+                    <div v-if="i.state === 3" class=" bg-sky-200 rounded-md p-2 font-sans">
+                      <el-popover
+                        class="box-item"
+                        :title="popoverTitle"
+                        :content="popoverText"
+                        placement="top-start"
+                      >
+                        <template #reference>
+                          <div>
+                            {{ i.workTime }}
+                            {{ `(${i.jobName})` }}
+                          </div>
+                        </template>
+                      </el-popover>
+                    </div>
+                    <div v-if="i.state === 7" class="bg-yellow-200 rounded-md p-2 font-sans">
                       <el-popover
                         class="box-item"
                         :title="popoverTitle"
@@ -233,7 +381,23 @@ onMounted(() => {
                       </el-popover>
                     </div>
                     <div v-if="i.state === 5" class="bg-red-200 rounded-md p-2 mt-2 font-sans">
-                      {{ i.workTime }}({{ i.jobName }})
+                      <el-popover
+                        placement="bottom"
+                        :width="200"
+                        trigger="click"
+                        content="this is content, this is content, this is content"
+                      >
+                        <template #reference>
+                          <div class="cursor-pointer">
+                            {{ i.workTime }}({{ i.jobName }})
+                          </div>
+                        </template>
+                        <div class="flex">
+                          <el-button type="danger" :loading="deleteLoadingState" @click="deleteChangedWorkerHour(i.sid)">
+                            删除
+                          </el-button>
+                        </div>
+                      </el-popover>
                     </div>
                     <div v-if="i.state === 4" class=" bg-green-200 rounded-md p-2 mt-2 font-sans">
                       {{ i.workTime }}({{ i.jobName }})
@@ -250,13 +414,13 @@ onMounted(() => {
       <el-button :type="currentButton === 1 ? 'primary' : 'default'" @click="currentButton = 1">
         调整工时
       </el-button>
-      <el-button :disabled="currentButton === 1">
+      <el-button :disabled="currentButton === 1" :type="currentButton === 2 ? 'primary' : 'default'" @click="currentButton = 2">
         调换岗位
       </el-button>
-      <el-button type="primary" :disabled="currentButton === 1">
+      <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2" @click="exportToExcel">
         生成自用表格
       </el-button>
-      <el-button type="primary" :disabled="currentButton === 1">
+      <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2">
         生成提交表格
       </el-button>
       <div class="m-auto">
@@ -265,6 +429,41 @@ onMounted(() => {
     </div>
     <xt-dialog v-model="workTimeChangeDialog" title="工时班次调整" width="900" :show-cancel="false" :show-confirm="false">
       <workTimeChange :work-time-cache="workTimeCache" @close="closeWorkTimeDate" />
+    </xt-dialog>
+    <xt-dialog v-model="workJobChangeDialog" title="岗位调整" width="600" @cancel="closeWorkJobChangeDialog" @confirm="upLoadChangeJob">
+      <div class="flex">
+        <el-card class="w-60">
+          <div>
+            {{ changeWorkerJob[0] && changeWorkerJob[0].date ? changeWorkerJob[0].date : '' }}
+          </div>
+          <div>
+            {{ changeWorkerJob[0] && changeWorkerJob[0].jobName ? changeWorkerJob[0].jobName : '' }}
+          </div>
+          <div>
+            {{ changeWorkerJob[0] && changeWorkerJob[0].workerName ? changeWorkerJob[0].workerName : '' }}
+          </div>
+          <div>
+            {{ changeWorkerJob[0] && changeWorkerJob[0].workTime ? changeWorkerJob[0].workTime : '' }}
+          </div>
+        </el-card>
+        <el-icon size="30" class="w-20 mt-10">
+          <SvgIcon name="change" />
+        </el-icon>
+        <el-card class="w-60">
+          <div>
+            {{ changeWorkerJob[1] && changeWorkerJob[1].date ? changeWorkerJob[1].date : '' }}
+          </div>
+          <div>
+            {{ changeWorkerJob[1] && changeWorkerJob[1].jobName ? changeWorkerJob[1].jobName : '' }}
+          </div>
+          <div>
+            {{ changeWorkerJob[1] && changeWorkerJob[1].workerName ? changeWorkerJob[1].workerName : '' }}
+          </div>
+          <div>
+            {{ changeWorkerJob[1] && changeWorkerJob[1].workTime ? changeWorkerJob[1].workTime : '' }}
+          </div>
+        </el-card>
+      </div>
     </xt-dialog>
   </div>
 </template>

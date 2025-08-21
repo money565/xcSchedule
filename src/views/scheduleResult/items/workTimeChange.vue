@@ -82,8 +82,8 @@ else {
     mesg.ext_time = t2[0]
     mesg.in_job = props.workTimeCache[0].jid
     mesg.in_wid = props.workTimeCache[1].wid
-    mesg.in_time_start = t2[0]
-    mesg.in_time_end = t1[0]
+    mesg.in_time_start = t1[0]
+    mesg.in_time_end = t2[0]
     mesg.in_date = props.workTimeCache[1].date
   }
 }

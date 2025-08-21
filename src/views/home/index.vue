@@ -84,6 +84,7 @@ function getSchedule() {
     }
     try {
       makeScheduls(params).then(({ data: res }) => {
+        console.log(res)
         setWorkerHourPrice(res.df, res.wr, res.wp)
         loadingSchedule.value = false
         router.push({
