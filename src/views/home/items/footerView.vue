@@ -1,26 +1,41 @@
 <script setup lang="ts">
-import { getEditRuleByProject } from '@/axios/interface'
+import { getEditRuleByProject, setRule } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
-import checkboxView from '../inputElements/checkboxView.vue'
-import inputView from '../inputElements/inputView.vue'
-import radioView from '../inputElements/radioView.vue'
 
-interface rulesOpt {
-  id: number
-  conf_name: string
-  conf_value: any
-  conf_label: {
-    input_type: string
-    value_type: string
-    options?: { label: string, value: number }[]
-  }
-}
 const acs = useAppCacheStore()
-const rules = ref<rulesOpt[]>([])
-const showMore = ref(false)
 function init() {
   getEditRuleByProject(acs.currentProject).then(({ data: res }) => {
-    rules.value = res.result
+    acs.rest_workDay = res.result.workDay
+    acs.rest_weekend = res.result.weekendDay
+    acs.rest_festival = res.result.festival
+    acs.daysOfAnnualLeave = res.result.daysOfAnnualLeave
+  })
+}
+
+function restConfig(index: number) {
+  const params = {
+    pid: acs.currentProject,
+    conf_name: '',
+    conf_value: 0,
+  }
+  if (index === 1) {
+    params.conf_name = 'workDay'
+    params.conf_value = acs.rest_workDay
+  }
+  if (index === 2) {
+    params.conf_name = 'weekendDay'
+    params.conf_value = acs.rest_weekend
+  }
+  if (index === 3) {
+    params.conf_name = 'festival'
+    params.conf_value = acs.rest_festival
+  }
+  if (index === 4) {
+    params.conf_name = 'daysOfAnnualLeave'
+    params.conf_value = acs.daysOfAnnualLeave
+  }
+  setRule(params).then(() => {
+    init()
   })
 }
 
@@ -38,7 +53,7 @@ onMounted(() => {
             工作日休息人数：
           </div>
           <div>
-            <el-input-number v-model="acs.rest_workDay" :min="1" :max="10" />
+            <el-input-number v-model="acs.rest_workDay" :min="1" :max="10" @change="restConfig(1)" />
           </div>
         </div>
         <div class="flex mt-3">
@@ -46,7 +61,7 @@ onMounted(() => {
             周末调休人数：
           </div>
           <div>
-            <el-input-number v-model="acs.rest_weekend" :min="1" :max="10" />
+            <el-input-number v-model="acs.rest_weekend" :min="1" :max="10" @change="restConfig(2)" />
           </div>
         </div>
 
@@ -55,7 +70,7 @@ onMounted(() => {
             节日调休人数：
           </div>
           <div>
-            <el-input-number v-model="acs.rest_festival" :min="1" :max="10" />
+            <el-input-number v-model="acs.rest_festival" :min="1" :max="10" @change="restConfig(3)" />
           </div>
         </div>
 
@@ -64,13 +79,10 @@ onMounted(() => {
             员工月休天数：
           </div>
           <div>
-            <el-input-number v-model="acs.daysOfAnnualLeave" :min="1" :max="10" />
+            <el-input-number v-model="acs.daysOfAnnualLeave" :min="1" :max="10" @change="restConfig(4)" />
           </div>
         </div>
       </div>
-      <el-button class="mt-5" link type="primary" @click="showMore = !showMore">
-        {{ showMore ? '隐藏' : '显示更多规则' }}
-      </el-button>
     </el-card>
   </div>
 </template>

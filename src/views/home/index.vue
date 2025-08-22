@@ -19,6 +19,11 @@ const job_leak = ref({})
 const worker_leak = ref({})
 const router = useRouter()
 const loadingSchedule = ref(false)
+const hasScheduleTableDialog = ref(false)
+const scheduleTableExist = ref([])
+const makeSchedulsSource = ref<number>(-1)
+const scheduleResultShowDialog = ref(false)
+
 function orderMesgChange(value: { target: string, priceOrder: boolean }) {
   if (value.target === 'price') {
     if (value.priceOrder) {
@@ -38,26 +43,42 @@ function orderMesgChange(value: { target: string, priceOrder: boolean }) {
     }
   }
 }
-function downloadSchedule() {
+
+function downloadSchedule(confirm: string | null = null) {
+  loadingSchedule.value = true
+  makeSchedulsSource.value = 1
   if (acs.timeRange) {
     // const target = `f${new Date().getTime()}`
-    const params = {
+    const params: { pid: number, start_data: string, end_data: string, confirm?: any } = {
       pid: acs.currentProject,
       start_data: DateToStr(acs.timeRange[0]),
       end_data: DateToStr(acs.timeRange[1]),
     }
+    if (confirm !== null) {
+      params.confirm = ''
+    }
     try {
       makeScheduls(params).then(({ data: res }) => {
-        worker_price_time.value = res.worker_price_time
-        job_leak.value = res.job_leak
-        worker_leak.value = res.worker_leak
-        const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
-        const downloadUrl = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = downloadUrl
-        link.download = 'pbb'
-        link.click()
-        URL.revokeObjectURL(downloadUrl)
+        if (res.result === 1) {
+          scheduleTableExist.value = res.mesg
+          hasScheduleTableDialog.value = true
+          loadingSchedule.value = false
+        }
+        else {
+          worker_price_time.value = res.worker_price_time
+          job_leak.value = res.job_leak
+          worker_leak.value = res.worker_leak
+          const blob = new Blob([res.df], { type: 'text/csv;charset=utf-8;' })
+          const downloadUrl = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = downloadUrl
+          link.download = 'pbb'
+          link.click()
+          URL.revokeObjectURL(downloadUrl)
+          loadingSchedule.value = false
+          hasScheduleTableDialog.value = false
+          scheduleResultShowDialog.value = true
+        }
       })
     }
     // eslint-disable-next-line unused-imports/no-unused-vars
@@ -72,24 +93,35 @@ function downloadSchedule() {
   }
 }
 
-function getSchedule() {
+function getSchedule(confirm: string | null = null) {
+  makeSchedulsSource.value = 2
   if (acs.timeRange) {
     loadingSchedule.value = true
-    // const target = `f${new Date().getTime()}`
-    const params = {
+    const params: { pid: number, start_data: string, end_data: string, target: string, confirm?: any } = {
       pid: acs.currentProject,
       start_data: DateToStr(acs.timeRange[0]),
       end_data: DateToStr(acs.timeRange[1]),
       target: 'ok',
     }
+    if (confirm !== null) {
+      params.confirm = ''
+    }
     try {
       makeScheduls(params).then(({ data: res }) => {
-        console.log(res)
-        setWorkerHourPrice(res.df, res.wr, res.wp)
-        loadingSchedule.value = false
-        router.push({
-          name: 'scheduleResult',
-        })
+        if (res.result === 1) {
+          scheduleTableExist.value = res.mesg
+          hasScheduleTableDialog.value = true
+          loadingSchedule.value = false
+        }
+        else {
+          setWorkerHourPrice(res.df, res.wr, res.wp)
+          acs.worker_leak = res.worker_leak
+          acs.job_leak = res.job_leak
+          loadingSchedule.value = false
+          router.push({
+            name: 'scheduleResult',
+          })
+        }
       })
     }
     // eslint-disable-next-line unused-imports/no-unused-vars
@@ -105,6 +137,8 @@ function getSchedule() {
 }
 
 function readScheduleTable() {
+  loadingSchedule.value = true
+  makeSchedulsSource.value = 3
   if (acs.timeRange) {
     const param = {
       pid: acs.currentProject,
@@ -122,6 +156,20 @@ function readScheduleTable() {
   else {
     // eslint-disable-next-line no-alert
     alert('选择排班区间')
+  }
+}
+
+function cancelMakeSchedule() {
+  loadingSchedule.value = false
+  hasScheduleTableDialog.value = false
+}
+
+function confirmMakeSchedule() {
+  if (makeSchedulsSource.value === 1) {
+    downloadSchedule('ok')
+  }
+  if (makeSchedulsSource.value === 2) {
+    getSchedule('ok')
   }
 }
 </script>
@@ -156,12 +204,12 @@ function readScheduleTable() {
       <checkView />
     </div>
     <div class="flex justify-center items-center gap-4 h-32 bg-gray-100">
-      <el-button type="warning" class="w-60 h-12" @click="downloadSchedule">
+      <el-button type="warning" class="w-60 h-12" :loading="loadingSchedule" @click="downloadSchedule()">
         <div class="font-sans font-semibold ml-5 text-4">
           生成下载版排班表
         </div>
       </el-button>
-      <el-button type="primary" class="w-60 h-12" :loading="loadingSchedule" @click="getSchedule">
+      <el-button type="primary" class="w-60 h-12" :loading="loadingSchedule" @click="getSchedule()">
         <div class="flex">
           <div>
             <el-icon size="25">
@@ -169,7 +217,7 @@ function readScheduleTable() {
             </el-icon>
           </div>
           <div class="font-sans font-semibold ml-5 text-4 mt-1">
-            {{ loadingSchedule ? "正在生成排班表" : "生成排班表" }}
+            {{ loadingSchedule && makeSchedulsSource === 2 ? "正在生成排班表" : "生成排班表" }}
           </div>
         </div>
       </el-button>
@@ -181,14 +229,35 @@ function readScheduleTable() {
             </el-icon>
           </div>
           <div class="font-sans font-semibold ml-5 text-4 mt-1">
-            读取排班表
+            {{ loadingSchedule && makeSchedulsSource === 3 ? "正在读取排班表" : "读取排班表" }}
           </div>
         </div>
       </el-button>
     </div>
-    <div class="grid place-items-center mt-8">
-      <scheduleResult :worker_price_time="worker_price_time" :job_leak="job_leak" :worker_leak="worker_leak" @order="orderMesgChange" />
-    </div>
+
+    <XtDialog v-model="hasScheduleTableDialog" title="已经存在了排班表" :loading="loadingSchedule" @cancel="cancelMakeSchedule" @confirm="confirmMakeSchedule">
+      <div class="text-4">
+        已有如下日期的排班表，是否重新排班？
+      </div>
+
+      <div v-for="item in scheduleTableExist" :key="item">
+        {{ item }}
+      </div>
+
+      <div class="flex">
+        <el-icon size="30">
+          <SvgIcon name="attention" />
+        </el-icon>
+        <div class="text-5 text-red-600 ml-2">
+          重新排班将重置微调内容
+        </div>
+      </div>
+    </XtDialog>
+    <XtDialog v-model="scheduleResultShowDialog" title="排班数据一览" width="1200" :show-cancel="false" @confirm="scheduleResultShowDialog = false">
+      <div class="grid place-items-center mt-8 h-150 overflow-auto">
+        <scheduleResult :worker_price_time="worker_price_time" :job_leak="job_leak" :worker_leak="worker_leak" @order="orderMesgChange" />
+      </div>
+    </XtDialog>
   </div>
 </template>
 

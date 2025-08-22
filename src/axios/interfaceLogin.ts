@@ -13,3 +13,13 @@ export function getUserBycode(code: string) {
     method: 'get',
   })
 }
+
+export function authentication(config: any) {
+  return requestLogin({
+    url: `/authentication`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}

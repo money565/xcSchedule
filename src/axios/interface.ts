@@ -147,6 +147,16 @@ export function editRule(config: any) {
   })
 }
 
+export function setRule(config: any) {
+  return request({
+    url: `/setRule`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
 export function setFestivalInterface(config: any) {
   return request({
     url: `/setFestival`,

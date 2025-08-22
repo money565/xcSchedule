@@ -1,4 +1,4 @@
-export const loginURL: string = 'https://www.cdxcwy.cn/intelTools'
+export const loginURL: string = 'http://118.24.54.200:8080/publicMesg'
 export const baseURL: string = 'https://www.cdxcwy.cn/spotCheck'
 export const HWURL: string = 'http://124.71.148.182:8080/magicTools'
 export const TXURL: string = 'http://118.24.54.200:8080/schedule'

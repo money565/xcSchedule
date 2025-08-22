@@ -6,6 +6,7 @@ import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
 import { DateToStr } from '../editJob/publicData'
 import { setWorkerHourPrice } from './items/funs'
+import resultInfo from './items/resultInfo.vue'
 import workTimeChange from './items/workTimeChange.vue'
 
 const acs = useAppCacheStore()
@@ -266,6 +267,7 @@ function exportToPartA() {
 }
 
 onMounted(() => {
+  console.log(acs.job_leak, acs.worker_leak)
   perpareDatas()
 })
 
@@ -446,7 +448,8 @@ function reslove(resolve: (value: unknown) => void, reject: (reason?: any) => vo
         </template>
       </el-table-column>
     </el-table>
-    <div class="flex">
+    <div class="flex mt-3 ml-5">
+      <resultInfo class="mt--1 mr-5" />
       <el-button :type="currentButton === 1 ? 'primary' : 'default'" @click="currentButton = 1">
         调整工时
       </el-button>

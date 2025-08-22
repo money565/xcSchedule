@@ -46,7 +46,7 @@ function orderByWorkTimeOrder() {
 
 <template>
   <div>
-    <el-card class="w-1080px rounded-1rem font-sans font-semibold">
+    <el-card class="w-240 rounded-1rem font-sans font-semibold">
       <div class="flex">
         <div>
           <div class="mb-5 flex">
@@ -115,7 +115,7 @@ function orderByWorkTimeOrder() {
         </div>
       </div>
     </el-card>
-    <el-card class="w-1080px rounded-1rem font-sans font-semibold">
+    <el-card class="w-240 rounded-1rem font-sans font-semibold mt-5">
       <div class="ml-5">
         <div class="mb-5">
           未安排到的岗位：
@@ -127,7 +127,7 @@ function orderByWorkTimeOrder() {
         </div>
       </div>
     </el-card>
-    <el-card class="w-1080px rounded-1rem font-sans font-semibold">
+    <el-card class="w-240 rounded-1rem font-sans font-semibold mt-5">
       <div class="ml-5">
         <div class="mb-5">
           未安排到的人员：
