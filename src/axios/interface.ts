@@ -379,6 +379,16 @@ export function getWorkersWorkHour(config: any) {
   })
 }
 
+export function cutDownJobTime(config: any) {
+  return request({
+    url: `/cutDownJobTime`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
 export function deleteAdjustWorkerTime(sid: number, pid: number) {
   return request({
     url: `/deleteAdjustWorkerTime/${sid}/${pid}`,

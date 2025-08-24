@@ -28,3 +28,30 @@ export function setWorkerHourPrice(df: any, wr: any, wp: any) {
     }
   })
 }
+
+export function perpareDatas(dateList: string[]) {
+  for (const i in acs.scheduleResultData) {
+    dateList.forEach((w) => {
+      if (acs.scheduleResultData[i].job !== '') {
+        for (const j in acs.scheduleResultData[i][w]) {
+          if (acs.scheduleResultData[i][w][j].state === 2) {
+            let hasReplace = false
+            for (const t in acs.scheduleResultData) {
+              for (const tj in acs.scheduleResultData[t][w]) {
+                if (acs.scheduleResultData[t][w][tj].jid === acs.scheduleResultData[i][w][j].mainJob) {
+                  hasReplace = true
+                  break
+                }
+              }
+            }
+            if (!hasReplace) {
+              if (acs.scheduleResultData[i][w][j].mainJob) {
+                acs.scheduleResultData[i][w][j].noReplace = true
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+}

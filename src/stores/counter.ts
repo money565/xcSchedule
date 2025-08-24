@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', () => {
     rank: 0,
   })
   const permissions = ref<number>(0)
-  
+
   function login() {
     const authData = {
       timestamp: Math.trunc(new Date().getTime() / 1000),
@@ -53,7 +53,7 @@ export const useUserStore = defineStore('user', () => {
     return new Promise((reslove, reject) => {
       dd.ready(() => {
         dd.util.domainStorage.getItem({
-          name: 'spotCheck_userMsg', // 存储信息的key值
+          name: 'xc_schedule_userMsg', // 存储信息的key值
           onSuccess(info: { value: string }) {
             if (info.value === '') {
               dd.runtime.permission.requestAuthCode({
@@ -78,24 +78,24 @@ export const useUserStore = defineStore('user', () => {
                         // eslint-disable-next-line no-alert
                         alert(`写入用户名信息失败,失败原因：${err}`)
                       },
-                    })
+                    } as any)
                   })
                 },
-              })
+              } as any)
             }
             else {
               userInfo.value = JSON.parse(info.value)
               reslove({
                 result: true,
                 mesg: '用户信息来自本地',
-              })
+              } as any)
             }
           },
           onFail(err: any) {
             mesg.value = `没有储存的数据${err}`
             reject(err)
           },
-        })
+        } as any)
       })
     })
   }

@@ -85,11 +85,14 @@ function downloadSchedule(confirm: string | null = null) {
     catch (error) {
       // eslint-disable-next-line no-alert
       alert('下载失败，请重试')
+      loadingSchedule.value = false
     }
   }
   else {
     // eslint-disable-next-line no-alert
     alert('选择排班区间')
+    loadingSchedule.value = false
+    return null
   }
 }
 
@@ -128,11 +131,14 @@ function getSchedule(confirm: string | null = null) {
     catch (error) {
       // eslint-disable-next-line no-alert
       alert('下载失败，请重试')
+      loadingSchedule.value = false
     }
   }
   else {
     // eslint-disable-next-line no-alert
     alert('选择排班区间')
+    loadingSchedule.value = false
+    return null
   }
 }
 
@@ -156,6 +162,8 @@ function readScheduleTable() {
   else {
     // eslint-disable-next-line no-alert
     alert('选择排班区间')
+    loadingSchedule.value = false
+    return null
   }
 }
 

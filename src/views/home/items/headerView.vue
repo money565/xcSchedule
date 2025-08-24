@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useAppCacheStore } from '@/stores/appCache'
+import { useUserStore } from '@/stores/counter'
 
 const acs = useAppCacheStore()
+const acounter = useUserStore()
 const options = [
   {
     value: 1,
@@ -16,6 +18,11 @@ const options = [
 
 <template>
   <div>
+    <div class="fixed right-10 top-10 cursor-pointer">
+      <el-icon size="30">
+        <svg-icon name="config" />
+      </el-icon>
+    </div>
     <div class="text-center mt-10">
       <div class="text-4xl font-sans font-bold">
         细川排班系统
@@ -48,8 +55,13 @@ const options = [
                 />
               </el-select>
             </div>
-            <div class="text-4 font-sans font-bold mt-2 ml-10">
-              主管：汤卉
+            <div class="text-4 font-sans font-bold mt-2 ml-10 flex">
+              <div>
+                {{ acounter.userInfo.depart }}
+              </div>
+              <div>
+                ：{{ acounter.userInfo.username }}
+              </div>
             </div>
             <div class="text-4 font-sans font-bold mt-2 ml-10">
               期间：

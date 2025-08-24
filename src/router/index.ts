@@ -36,7 +36,7 @@ const router = createRouter({
     {
       path: '/scheduleResult',
       name: 'scheduleResult',
-      component: () => import('@/views/scheduleResult/scheduleResultShow.vue'),
+      component: () => import('@/views/scheduleResult/scheduleResultDiv.vue'),
     },
   ],
 })

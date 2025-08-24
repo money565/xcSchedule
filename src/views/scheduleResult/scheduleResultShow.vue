@@ -18,12 +18,25 @@ const workTimeChangeDialog = ref(false)
 const workJobChangeDialog = ref(false)
 const hoverTexts = ref('前四周工时')
 const replacementList = ref<number[]>([0])
-const popoverText = ref('')
+const value1 = ref(0)
 const popoverTitle = ref('')
 const tableRefreshKey = ref(0)
 const workTimeRadioValue = ref(1)
 const deleteLoadingState = ref(false)
 const changeWorkerJob = ref<any[]>([])
+const cutWorkerHourDialog = ref(false)
+const currentCutItem = ref()
+const marks = reactive({
+  0: '0°C',
+  8: '8°C',
+  37: '37°C',
+  50: {
+    style: {
+      color: '#1989FA',
+    },
+    label: '50%',
+  },
+})
 const optionText = computed(() => {
   if (currentButton.value === 1 && workTimeCache.value.length === 0) {
     return '请选择需要调整的人员'
@@ -76,6 +89,11 @@ function selectTag(row: any, item: any) {
     }
   }
   if (currentButton.value === 2) {
+    if (item.state === 2) {
+      // eslint-disable-next-line no-alert
+      alert('休息人员不参与换岗')
+      return null
+    }
     changeWorkerJob.value.push(item)
     if (changeWorkerJob.value.length > 1) {
       workJobChangeDialog.value = true
@@ -84,49 +102,47 @@ function selectTag(row: any, item: any) {
 }
 
 function dohoverItem(item: any) {
-  if ((currentButton.value === undefined && item.mainJob !== item.jid) || item.jobName === undefined) {
-    popoverTitle.value = ''
-    popoverText.value = '危险！！！该岗位没有员工替岗'
-    if (item.mainJob) {
-      for (const i in acs.scheduleResultData) {
-        for (const d in acs.scheduleResultData[i][item.date]) {
-          if (acs.scheduleResultData[i][item.date][d].jid) {
-            if (acs.scheduleResultData[i][item.date][d].jid === item.mainJob) {
-              popoverTitle.value = '被替的岗位'
-              popoverText.value = `该岗位由 ${acs.scheduleResultData[i][item.date][d].workerName} 代替`
-            }
+  if (item.mainJob) {
+    for (const i in acs.scheduleResultData) {
+      for (const d in acs.scheduleResultData[i][item.date]) {
+        if (acs.scheduleResultData[i][item.date][d].jid) {
+          if (acs.scheduleResultData[i][item.date][d].jid === item.mainJob) {
+            return `该岗位由 ${acs.scheduleResultData[i][item.date][d].workerName} 代替`
           }
         }
       }
     }
-    else {
-      let isin = false
-      for (const x in acs.scheduleResultData) {
-        if (item.jid === acs.scheduleResultData[x].id) {
-          popoverTitle.value = '替代岗位'
-          popoverText.value = `替代 ${acs.scheduleResultData[x].workName} 的岗位`
-          isin = true
-        }
+  }
+  else {
+    let isin = false
+    let mesg = ''
+    for (const x in acs.scheduleResultData) {
+      if (item.jid === acs.scheduleResultData[x].id) {
+        isin = true
+        mesg = `替代 ${acs.scheduleResultData[x].workName} 的岗位`
+        break
       }
-      if (!isin) {
-        if (item.state === 2) {
-          popoverTitle.value = '休息'
-          popoverText.value = `休息`
-        }
-        else {
-          popoverTitle.value = '节假日增岗'
-          popoverText.value = `节假日增岗`
-        }
+    }
+    if (isin) {
+      return mesg
+    }
+    else {
+      if (item.state === 2) {
+        return `休息`
+      }
+      else {
+        return `节假日增岗`
       }
     }
   }
-  isHovering.value = item
+  return '危险！！！该岗位没有员工替岗'
 }
 
 function closeWorkTimeDate() {
   workTimeCache.value = []
+  currentButton.value = undefined
   workTimeChangeDialog.value = false
-  tableRefreshKey.value = new Date().getTime()
+  // tableRefreshKey.value = new Date().getTime()
 }
 
 function perpareDatas() {
@@ -266,6 +282,12 @@ function exportToPartA() {
   })
 }
 
+function cutWorkerHour(item: any) {
+  currentCutItem.value = item
+  cutWorkerHourDialog.value = true
+  console.log(item)
+}
+
 onMounted(() => {
   console.log(acs.job_leak, acs.worker_leak)
   perpareDatas()
@@ -365,81 +387,88 @@ function reslove(resolve: (value: unknown) => void, reject: (reason?: any) => vo
               :key="v"
               :class="{ ' bg-blue-300 text-light-50 rounded-md cursor-pointer text-center p-2': isHovering && currentButton === 1 && (workTimeCache.length === 0 || workTimeCache[0].date === i.date) ? i.date === isHovering.date && i.wid === isHovering.wid : false }"
               @click="selectTag(scope.row, i)"
-              @mouseenter="dohoverItem(i)"
             >
               <div :class="{ ' text-red-700 text-5 font-sans font-semibold': workTimeCache.length === 1 ? i.date === workTimeCache[0].date && replacementList.includes(i.wid) : false }">
                 <div :class="{ ' bg-blue-400 text-light-50 p-2 rounded-md': workTimeCache.length > 0 && workTimeCache[0].date === i.date && i.wid === workTimeCache[0].wid && i.state === 1 ? true : false }">
-                  <div :class="{ 'bg-yellow-300 rounded-md p-2 cursor-pointer': currentButton === 2 && (isHovering.sid === i.sid && changeWorkerJob.length === 0 || changeWorkerJob.length > 0 && (changeWorkerJob[0].sid && changeWorkerJob[0].sid === i.sid) || isHovering.sid === i.sid && changeWorkerJob[0].date === i.date) }">
-                    <div v-if="i.state === 2" class="bg-teal-300 p-2 rounded-md text-light-50 w-100%">
-                      <el-popover
-                        class="box-item"
-                        :title="popoverTitle"
-                        :content="popoverText"
-                        placement="top-start"
-                      >
-                        <template #reference>
-                          <div :class="{ ' bg-red-400 font-sans': i.noReplace === true }">
-                            休
-                          </div>
-                        </template>
-                      </el-popover>
-                    </div>
-                    <div v-if="i.state === 1">
-                      {{ i.workTime }}
-                    </div>
-
-                    <div v-if="i.state === 3" class=" bg-sky-200 rounded-md p-2 font-sans">
-                      <el-popover
-                        class="box-item"
-                        :title="popoverTitle"
-                        :content="popoverText"
-                        placement="top-start"
-                      >
-                        <template #reference>
-                          <div>
-                            {{ i.workTime }}
-                            {{ `(${i.jobName})` }}
-                          </div>
-                        </template>
-                      </el-popover>
-                    </div>
-                    <div v-if="i.state === 7" class="bg-yellow-200 rounded-md p-2 font-sans">
-                      <el-popover
-                        class="box-item"
-                        :title="popoverTitle"
-                        :content="popoverText"
-                        placement="top-start"
-                      >
-                        <template #reference>
-                          <div>
-                            {{ i.workTime }}
-                            {{ `(${i.jobName})` }}
-                          </div>
-                        </template>
-                      </el-popover>
-                    </div>
-                    <div v-if="i.state === 5" class="bg-red-200 rounded-md p-2 mt-2 font-sans">
-                      <el-popover
-                        placement="bottom"
-                        :width="200"
-                        trigger="click"
-                        content="this is content, this is content, this is content"
-                      >
-                        <template #reference>
-                          <div class="cursor-pointer">
-                            {{ i.workTime }}({{ i.jobName }})
-                          </div>
-                        </template>
-                        <div class="flex">
-                          <el-button type="danger" :loading="deleteLoadingState" @click="deleteChangedWorkerHour(i.sid)">
-                            删除
-                          </el-button>
+                  <div v-if="i.state === 2" class="bg-teal-300 p-2 rounded-md text-light-50 w-100%">
+                    <el-popover
+                      class="box-item"
+                      :content="dohoverItem(i)"
+                      :disabled="currentButton === 1 || currentButton === 2 ? true : false"
+                    >
+                      <template #reference>
+                        <div :class="{ ' bg-red-400 font-sans': i.noReplace === true }">
+                          休
                         </div>
-                      </el-popover>
-                    </div>
-                    <div v-if="i.state === 4" class=" bg-green-200 rounded-md p-2 mt-2 font-sans">
-                      {{ i.workTime }}({{ i.jobName }})
-                    </div>
+                      </template>
+                    </el-popover>
+                  </div>
+                  <div v-if="i.state === 1">
+                    <el-popover
+                      placement="bottom"
+                      :width="200"
+                      trigger="click"
+                      :disabled="currentButton === 1 || currentButton === 2 ? true : false"
+                    >
+                      <template #reference>
+                        <div class="cursor-pointer">
+                          {{ i.workTime }}
+                        </div>
+                      </template>
+                      <div class="flex">
+                        <el-slider v-model="value1" :step="10" />
+                      </div>
+                    </el-popover>
+                  </div>
+
+                  <div v-if="i.state === 3" class=" bg-sky-200 rounded-md p-2 font-sans">
+                    <el-popover
+                      class="box-item"
+                      :content="dohoverItem(i)"
+                      :disabled="currentButton === 1 || currentButton === 2 ? true : false"
+                    >
+                      <template #reference>
+                        <div>
+                          {{ i.workTime }}
+                          {{ `(${i.jobName})` }}
+                        </div>
+                      </template>
+                    </el-popover>
+                  </div>
+                  <div v-if="i.state === 7" class="bg-yellow-200 rounded-md p-2 font-sans">
+                    <el-popover
+                      class="box-item"
+                      :content="dohoverItem(i)"
+                      :disabled="currentButton === 1 || currentButton === 2 ? true : false"
+                    >
+                      <template #reference>
+                        <div>
+                          {{ i.workTime }}
+                          {{ `(${i.jobName})` }}
+                        </div>
+                      </template>
+                    </el-popover>
+                  </div>
+                  <div v-if="i.state === 5" class="bg-red-200 rounded-md p-2 mt-2 font-sans">
+                    <el-popover
+                      placement="bottom"
+                      :width="200"
+                      trigger="click"
+                    >
+                      <template #reference>
+                        <div class="cursor-pointer">
+                          {{ i.workTime }}({{ i.jobName }})
+                        </div>
+                      </template>
+                      <div class="flex">
+                        <el-button type="danger" :loading="deleteLoadingState" @click="deleteChangedWorkerHour(i.sid)">
+                          删除
+                        </el-button>
+                      </div>
+                    </el-popover>
+                  </div>
+                  <div v-if="i.state === 4" class=" bg-green-200 rounded-md p-2 mt-2 font-sans">
+                    {{ i.workTime }}({{ i.jobName }})
                   </div>
                 </div>
               </div>
@@ -462,11 +491,14 @@ function reslove(resolve: (value: unknown) => void, reject: (reason?: any) => vo
       <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2" @click="exportToPartA">
         生成提交表格
       </el-button>
+      <div>
+        当前按钮{{ currentButton }}
+      </div>
       <div class="m-auto">
         {{ optionText }}
       </div>
     </div>
-    <xt-dialog v-model="workTimeChangeDialog" title="工时班次调整" width="900" :show-cancel="false" :show-confirm="false">
+    <xt-dialog v-model="workTimeChangeDialog" title="工时班次调整" width="900" :show-cancel="false" :show-confirm="false" @cancel="closeWorkTimeDate">
       <workTimeChange :work-time-cache="workTimeCache" @close="closeWorkTimeDate" />
     </xt-dialog>
     <xt-dialog v-model="workJobChangeDialog" title="岗位调整" width="600" @cancel="closeWorkJobChangeDialog" @confirm="upLoadChangeJob">
@@ -504,6 +536,11 @@ function reslove(resolve: (value: unknown) => void, reject: (reason?: any) => vo
         </el-card>
       </div>
     </xt-dialog>
+    <XtDialog v-model="cutWorkerHourDialog" title="工时切割">
+      <div>
+        g
+      </div>
+    </XtDialog>
   </div>
 </template>
 
