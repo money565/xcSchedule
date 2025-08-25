@@ -429,3 +429,13 @@ export function setReplacement(rid: number, wid: number) {
     method: 'get',
   })
 }
+
+export function setUnArrayJobWorker(config: any) {
+  return request({
+    url: `/setUnArrayJobWorker`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}

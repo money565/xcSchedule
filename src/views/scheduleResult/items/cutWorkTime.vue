@@ -77,7 +77,7 @@ function confirmUpLoad() {
       }
       getScheduleResultTotable(param).then(({ data: res }) => {
         setWorkerHourPrice(res.df, res.wr, res.wp)
-        perpareDatas(props.dateList)
+        perpareDatas()
         emits('close')
       })
     }
