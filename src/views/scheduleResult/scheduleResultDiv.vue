@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { workerCacheOpt } from './items/funs'
-import { changeWorkerJobInterface, deleteAdjustWorkerTime, getScheduleResultTotable } from '@/axios/interface'
+import { changeScheduleResultWorkTime, changeWorkerJobInterface, deleteAdjustWorkerTime, getScheduleResultTotable, giveWorkTimeBlock } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { DateToStr } from '../editJob/publicData'
 import cutWorkTime from './items/cutWorkTime.vue'
-import { perpareDatas, setWorkerHourPrice } from './items/funs'
+import { exportToExcel, exportToPartA, perpareDatas, setWorkerHourPrice } from './items/funs'
+import resultInfo from './items/resultInfo.vue'
 import workTimeChange from './items/workTimeChange.vue'
 
 const acs = useAppCacheStore()
@@ -18,6 +19,8 @@ const timeDivisionDialog = ref(false)
 const workTimeChangeDialog = ref(false)
 const deleteLoadingState = ref(false)
 const workJobChangeDialog = ref(false)
+const jobStanderTimeChangeDialog = ref(false)
+const changedJobTime = ref<string[]>([])
 
 function init() {
   return new Promise ((resolve, _reject) => {
@@ -152,12 +155,10 @@ function itemClicked(item: workerCacheOpt) {
     currentClickedItem.value = item
   }
   else {
-    console.log('workTimeCache.value[0].date:', workTimeCache.value[0].date, 'item.date', item.date)
     if (workTimeCache.value[0].date === item.date) {
       if (currentButton.value === 1 || currentButton.value === 2 || currentButton.value === 3) {
         if (workTimeCache.value.length === 1) {
           workTimeCache.value.push(item)
-          console.log('注入第二个item', item)
           if (currentButton.value === 1) {
             workTimeChangeDialog.value = true
           }
@@ -199,6 +200,21 @@ function upLoadChangeJob() {
       })
     })
   }
+  if (currentButton.value === 3) {
+    deleteLoadingState.value = true
+    const param = {
+      e_sid: workTimeCache.value[0].sid,
+      i_sid: workTimeCache.value[1].sid,
+    }
+    giveWorkTimeBlock(param).then(() => {
+      init().then(() => {
+        workJobChangeDialog.value = false
+        deleteLoadingState.value = false
+        currentButton.value = undefined
+        workTimeCache.value = []
+      })
+    })
+  }
 }
 
 function resetChangedJob(sid: number) {
@@ -209,10 +225,35 @@ function closeCutTime() {
   currentClickedItem.value = undefined
   timeDivisionDialog.value = false
 }
+
+function jobStanderTimeChange(item: workerCacheOpt) {
+  const temp = item.workTime.split('-')
+  changedJobTime.value = [temp[0], temp[1]]
+  currentClickedItem.value = item
+  jobStanderTimeChangeDialog.value = true
+}
+
+function changJobworkTime() {
+  if (currentClickedItem.value) {
+    deleteLoadingState.value = true
+    const param = {
+      sid: currentClickedItem.value.sid,
+      start: changedJobTime.value[0],
+      end: changedJobTime.value[1],
+    }
+    changeScheduleResultWorkTime(param).then(() => {
+      init().then(() => {
+        deleteLoadingState.value = false
+        jobStanderTimeChangeDialog.value = false
+        changedJobTime.value = []
+      })
+    })
+  }
+}
 </script>
 
 <template>
-  <div class="h-230 mb-30 overflow-auto">
+  <div class="h-227 overflow-auto">
     <div class=" flex items-center justify-center text-center sticky h-12 top-0 z-9 bg-light-50">
       <div class="flex overflow-auto">
         <div class="w-1080 bg-#409EFF h-10 text-center font-sans font-bold text-#FFFFFF lh-10">
@@ -264,9 +305,9 @@ function closeCutTime() {
                     <div>
                       {{ restShowReplace }}
                     </div>
-                    <div>
+                    <div v-if="i.noReplace">
                       <el-button type="danger" link>
-                        删除
+                        安排员工
                       </el-button>
                     </div>
                   </div>
@@ -278,10 +319,10 @@ function closeCutTime() {
                     content="Left Top prompts info"
                     placement="bottom"
                     trigger="click"
-                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3"
+                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4"
                   >
                     <template #reference>
-                      <div :class="{ 'text-gray-200': (currentButton === 1 || currentButton === 2 || currentButton === 3) && currentClickedItem?.date !== i.date }" @click="itemClicked(i)">
+                      <div :class="{ 'text-gray-200': (currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4) && currentClickedItem?.date !== i.date }" @click="itemClicked(i)">
                         {{ i.workTime }}
                       </div>
                     </template>
@@ -308,14 +349,9 @@ function closeCutTime() {
                           给出
                         </div>
                       </el-button>
-                      <el-button type="info" link>
+                      <el-button type="info" link @click="jobStanderTimeChange(i)">
                         <div class="text-3">
                           调时
-                        </div>
-                      </el-button>
-                      <el-button type="default" link>
-                        <div class="text-3">
-                          加时
                         </div>
                       </el-button>
                     </div>
@@ -383,7 +419,7 @@ function closeCutTime() {
                   <el-popover
                     placement="bottom"
                     trigger="click"
-                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3"
+                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4"
                   >
                     <template #reference>
                       <div @click="itemClicked(i)">
@@ -408,7 +444,7 @@ function closeCutTime() {
                 </div>
               </div>
               <div v-else-if="i.state === 8" class="bg-red-400 text-light-50  w-36 p-2 rounded-lg">
-                <div>
+                <div class="cursor-pointer">
                   没有排班
                 </div>
               </div>
@@ -416,15 +452,16 @@ function closeCutTime() {
           </td>
         </tr>
       </tbody>
-      <tfoot>
-        <tr>
-          <td>总计</td>
-          <td>¥400,000</td>
-          <td>¥550,000</td>
-          <td>¥285,000</td>
-        </tr>
-      </tfoot>
     </table>
+  </div>
+  <div class="flex mt-3 ml-5">
+    <resultInfo class="mt--1 mr-5" />
+    <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4" @click="exportToExcel(dateList)">
+      生成自用表格
+    </el-button>
+    <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4" @click="exportToPartA(dateList)">
+      生成提交表格
+    </el-button>
   </div>
   <xt-dialog v-model="timeDivisionDialog" title="分割时间" :show-cancel="false" :show-confirm="false">
     <cutWorkTime :item="currentClickedItem" :date-list="dateList" @close="closeCutTime" />
@@ -432,7 +469,7 @@ function closeCutTime() {
   <xt-dialog v-model="workTimeChangeDialog" title="工时班次调整" width="900" :show-cancel="false" :show-confirm="false" @cancel="closeWorkTimeDate">
     <workTimeChange :work-time-cache="workTimeCache" @close="closeWorkTimeDate" />
   </xt-dialog>
-  <xt-dialog v-model="workJobChangeDialog" title="岗位调整" width="600" @cancel="closeWorkJobChangeDialog" @confirm="upLoadChangeJob">
+  <xt-dialog v-model="workJobChangeDialog" title="岗位调整" width="600" :loading="deleteLoadingState" @cancel="closeWorkJobChangeDialog" @confirm="upLoadChangeJob">
     <div class="flex">
       <el-card class="w-60">
         <div>
@@ -470,6 +507,46 @@ function closeCutTime() {
       </el-card>
     </div>
   </xt-dialog>
+  <XtDialog v-model="jobStanderTimeChangeDialog" title="更改工作时间" :loading="deleteLoadingState" @cancel="jobStanderTimeChangeDialog = false" @confirm="changJobworkTime">
+    <div>
+      <div class="text-4">
+        工作日期：{{ currentClickedItem?.date }}
+      </div>
+      <div class="text-4 mt-5">
+        岗位名称：{{ currentClickedItem?.jobName }}
+      </div>
+      <div class="text-4 mt-5">
+        员工姓名：{{ currentClickedItem?.workerName }}
+      </div>
+      <div class="text-4 mt-5 flex">
+        <div class="mt-1">
+          开始时间：
+        </div>
+        <div class="w-30 ml-4">
+          <el-time-select
+            v-model="changedJobTime[0]"
+            start="08:30"
+            step="00:15"
+            end="23:30"
+            placeholder="Select time"
+          />
+        </div>
+
+        <div class="mt-1 ml-4">
+          结束时间：
+        </div>
+        <div class="ml-4 w-30">
+          <el-time-select
+            v-model="changedJobTime[1]"
+            start="08:30"
+            step="00:15"
+            end="23:30"
+            placeholder="Select time"
+          />
+        </div>
+      </div>
+    </div>
+  </XtDialog>
 </template>
 
 <style scoped>

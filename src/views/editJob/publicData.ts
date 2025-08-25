@@ -33,6 +33,8 @@ export interface jonOpt {
   end_edit?: boolean
   job_name_edit?: boolean
   replacementList?: { link: number, value: string }[]
+  firstReplacement?: number
+  frid?: number
   // eslint-disable-next-line style/member-delimiter-style
   convert?: { feq: number, timeList: {
     start: string
@@ -99,6 +101,8 @@ export function init(start: number, end: number, replace: number = 0): Promise<r
           end_edit: false,
           job_name_edit: false,
           replacementList: res.result[i].replacementList,
+          firstReplacement: res.result[i].firstReplacement,
+          frid: res.result[i].frid,
           convert: res.result[i].convert,
           support: res.result[i].support,
         })

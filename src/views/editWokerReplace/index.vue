@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { jonOpt, resultOpt } from '../editJob/publicData'
-import { createJobAssociate } from '@/axios/interface'
+import { createJobAssociate, setReplacement } from '@/axios/interface'
 import autoInputItem from '../editElement/autoInputItem.vue'
 import { init } from '../editJob/publicData'
 
@@ -22,6 +22,7 @@ function exitEdit() {
 
 function initThisPage() {
   init(currentPage.value * perPage - perPage, currentPage.value * perPage - 1, 1).then((res: resultOpt) => {
+    console.log(res)
     const temp: replaceOpt[] = []
     for (const i in res.jobList) {
       temp.push({
@@ -38,6 +39,8 @@ function initThisPage() {
         area_edit: res.jobList[i].area_edit,
         limit_edit: res.jobList[i].limit_edit,
         replacementList: res.jobList[i].replacementList,
+        firstReplacement: res.jobList[i].firstReplacement,
+        frid: res.jobList[i].frid,
         replace_edit: false,
         support: null,
       })
@@ -107,6 +110,18 @@ function upLoadWorkerAssociateToJob() {
   })
 }
 
+function replacementChange(row: replaceOpt) {
+  console.log(row)
+  if (row.frid && row.firstReplacement) {
+    const firstReplacement = row.firstReplacement
+    const frid = row.frid
+    console.log(firstReplacement, frid)
+    setReplacement(frid, firstReplacement).then(() => {
+      initThisPage()
+    })
+  }
+}
+
 onMounted(() => {
   initThisPage()
 })
@@ -152,6 +167,20 @@ onMounted(() => {
                 <svg-icon name="ok" />
               </el-icon>
             </div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="顺位" width="130">
+        <template #default="scoped">
+          <div>
+            <el-select v-model="scoped.row.firstReplacement" placeholder="第一候选" style="width: 110px" @change="replacementChange(scoped.row)">
+              <el-option
+                v-for="item in scoped.row.replacementList"
+                :key="item.value"
+                :label="item.value"
+                :value="item.link"
+              />
+            </el-select>
           </div>
         </template>
       </el-table-column>

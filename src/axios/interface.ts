@@ -389,6 +389,26 @@ export function cutDownJobTime(config: any) {
   })
 }
 
+export function giveWorkTimeBlock(config: any) {
+  return request({
+    url: `/giveWorkTimeBlock`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
+export function changeScheduleResultWorkTime(config: any) {
+  return request({
+    url: `/changeScheduleResultWorkTime`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
+
 export function deleteAdjustWorkerTime(sid: number, pid: number) {
   return request({
     url: `/deleteAdjustWorkerTime/${sid}/${pid}`,
@@ -399,6 +419,13 @@ export function deleteAdjustWorkerTime(sid: number, pid: number) {
 export function changeWorkerJobInterface(sida: number, sidb: number) {
   return request({
     url: `/changeWorkerJob/${sida}/${sidb}`,
+    method: 'get',
+  })
+}
+
+export function setReplacement(rid: number, wid: number) {
+  return request({
+    url: `/setReplacement/${rid}/${wid}`,
     method: 'get',
   })
 }
