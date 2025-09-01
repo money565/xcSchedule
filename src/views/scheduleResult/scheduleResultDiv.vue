@@ -203,8 +203,8 @@ function upLoadChangeJob() {
   if (currentButton.value === 3) {
     deleteLoadingState.value = true
     const param = {
-      e_sid: workTimeCache.value[0].sid,
-      i_sid: workTimeCache.value[1].sid,
+      e_sid: workTimeCache.value[0].sid, // 移除
+      i_sid: workTimeCache.value[1].sid, // 移动到
     }
     giveWorkTimeBlock(param).then(() => {
       init().then(() => {
