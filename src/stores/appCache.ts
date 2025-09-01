@@ -54,5 +54,13 @@ export const useAppCacheStore = defineStore('appCache', () => {
     }
     return dateArray
   }
-  return { timeRange, currentProject, rest_workDay, rest_festival, rest_weekend, daysOfAnnualLeave, getDateRangeArray, scheduleResultData, workerHour, workerPrice, job_leak, worker_leak }
+  const dateList = computed<string[]>(() => {
+    if (timeRange.value) {
+      return getDateRangeArray(timeRange.value[0], timeRange.value[1], 'json')
+    }
+    else {
+      return []
+    }
+  })
+  return { timeRange, currentProject, rest_workDay, rest_festival, rest_weekend, daysOfAnnualLeave, getDateRangeArray, scheduleResultData, workerHour, workerPrice, job_leak, worker_leak, dateList }
 })
