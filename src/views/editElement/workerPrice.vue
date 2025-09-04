@@ -7,6 +7,7 @@ import { LaborContractChoices, typeChoiceList } from './item'
 
 interface workOpt {
   id: number
+  sn: number
   name: string
   gender: boolean
   labor_contract: {
@@ -28,6 +29,7 @@ interface workOpt {
   price_edit: boolean | undefined
   lc_edit: boolean | undefined
   job_edit: boolean | undefined
+  sn_edit: boolean | undefined
 }
 const acs = useAppCacheStore()
 const tableData = ref <workOpt[]> ([])
@@ -48,6 +50,7 @@ function init(start = 0, end = 14) {
     for (const i in res.result) {
       temp.push({
         id: res.result[i].id,
+        sn: res.result[i].sn,
         name: res.result[i].name,
         gender: res.result[i].gender,
         labor_contract: res.result[i].labor_contract,
@@ -60,6 +63,7 @@ function init(start = 0, end = 14) {
         price_edit: false,
         lc_edit: false,
         job_edit: false,
+        sn_edit: false,
       })
     }
     tableData.value = temp
@@ -74,12 +78,25 @@ function resetEdit() {
     tableData.value[i].price_edit = false
     tableData.value[i].types_edit = false
     tableData.value[i].gender_edit = false
+    tableData.value[i].sn_edit = false
   }
 }
 
 function editWork(target: string, index: number) {
   let updata = false
   let strValue
+  if (target === 'sn') {
+    if (tableData.value[index].sn_edit === true) {
+      strValue = tableData.value[index].sn
+      tableData.value[index].sn_edit = false
+      updata = true
+    }
+    else {
+      resetEdit()
+      tableData.value[index].sn_edit = true
+      updata = false
+    }
+  }
   if (target === 'name') {
     if (tableData.value[index].name_edit === true) {
       strValue = tableData.value[index].name
@@ -244,10 +261,29 @@ function modelChange() {
     </div>
     <div class="mx-auto">
       <el-table :data="tableData" style="width: 100%">
-        <el-table-column label="序号" width="150" align="center">
+        <el-table-column label="排列序号" width="150" align="center">
           <template #default="scoped">
             <div>
-              {{ scoped.$index + 1 }}
+              <div v-if="scoped.row.sn_edit === false" class="flex">
+                <div>
+                  {{ scoped.row.sn }}
+                </div>
+                <div>
+                  <el-icon v-if="isEdit" size="25" @click="editWork('sn', scoped.$index)">
+                    <svg-icon name="edit" />
+                  </el-icon>
+                </div>
+              </div>
+              <div v-else class="flex">
+                <div>
+                  <el-input v-model="scoped.row.sn" class="w-25" />
+                </div>
+                <div class="ml-3 mt-1">
+                  <el-icon v-if="isEdit" size="23" @click="editWork('sn', scoped.$index)">
+                    <svg-icon name="ok" />
+                  </el-icon>
+                </div>
+              </div>
             </div>
           </template>
         </el-table-column>
