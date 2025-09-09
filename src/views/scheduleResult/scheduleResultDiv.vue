@@ -4,7 +4,9 @@ import cutWorkTime from './items/cutWorkTime.vue'
 
 import {
   arrangeWork,
+  cancelSelect,
   changedJobTime,
+  changeRest,
   changJobworkTime,
   closeCutTime,
   closeWorkJobChangeDialog,
@@ -86,14 +88,14 @@ onMounted(() => {
                 :class="{
                   'bg-green-400': currentButton === undefined,
                   'bg-red-600': i.noReplace && currentButton === undefined,
-                  'bg-green-100': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4,
+                  'bg-green-100': currentButton !== undefined,
                 }"
                 @click="showReplace(i)"
               >
                 <el-popover
                   placement="bottom"
                   trigger="click"
-                  :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4"
+                  :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5"
                 >
                   <template #reference>
                     <div>
@@ -109,20 +111,24 @@ onMounted(() => {
                         安排员工
                       </el-button>
                     </div>
+                    <div v-else>
+                      <el-button type="primary" link @click="changeRest(i)">
+                        调整
+                      </el-button>
+                    </div>
                   </div>
                 </el-popover>
               </div>
               <div v-else-if="i.state === 1" class="cursor-pointer">
                 <div>
                   <el-popover
-                    content="Left Top prompts info"
                     placement="bottom"
                     trigger="click"
-                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4"
+                    :disabled="currentButton !== undefined"
                   >
                     <template #reference>
                       <div
-                        :class="{ 'text-gray-200': (currentButton === 1 || currentButton === 2 || currentButton === 3) && currentClickedItem?.date !== i.date || currentButton === 4 }"
+                        :class="{ 'text-gray-200': (currentButton !== undefined) && currentClickedItem?.date !== i.date || currentButton === 4 }"
                         @click="itemClicked(i)"
                       >
                         {{ i.workTime }}
@@ -136,8 +142,8 @@ onMounted(() => {
                 v-else-if="i.state === 3"
                 class="w-36 p-2 rounded-lg cursor-pointer"
                 :class="{
-                  'bg-yellow-300 ': currentButton === undefined || currentClickedItem?.date === i.date && (currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4),
-                  'bg-yellow-50 text-gray-300': (currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4) && currentClickedItem?.date !== i.date || currentButton === 4,
+                  'bg-yellow-300 ': currentButton === undefined || currentClickedItem?.date === i.date && (currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5),
+                  'bg-yellow-50 text-gray-300': (currentButton !== undefined) && currentClickedItem?.date !== i.date || currentButton === 4,
                 }"
                 @click="itemClicked(i)"
               >
@@ -145,7 +151,7 @@ onMounted(() => {
                   <el-popover
                     placement="bottom"
                     trigger="click"
-                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4"
+                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5"
                   >
                     <template #reference>
                       <div>
@@ -169,7 +175,7 @@ onMounted(() => {
                 class="w-36 p-2 rounded-lg"
                 :class="{
                   'bg-sky-300': currentButton === undefined,
-                  'bg-sky-100 text-gray-300': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4,
+                  'bg-sky-100 text-gray-300': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5,
                 }"
               >
                 <div>
@@ -182,7 +188,7 @@ onMounted(() => {
                 class="w-36 p-2 rounded-lg cursor-pointer"
                 :class="{
                   'bg-red-300 ': currentButton === undefined,
-                  'bg-red-100 text-gray-300': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4,
+                  'bg-red-100 text-gray-300': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5,
                 }"
               >
                 <div>
@@ -214,7 +220,7 @@ onMounted(() => {
                 class="w-36 p-2 rounded-lg"
                 :class="{
                   'bg-indigo-300 ': currentButton === undefined,
-                  'bg-indigo-50 text-gray-300': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4,
+                  'bg-indigo-50 text-gray-300': currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5,
                 }"
                 @click="showReplace(i)"
               >
@@ -222,7 +228,7 @@ onMounted(() => {
                   <el-popover
                     placement="bottom"
                     trigger="click"
-                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4"
+                    :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5"
                   >
                     <template #reference>
                       <div @click="itemClicked(i)">
@@ -250,7 +256,7 @@ onMounted(() => {
                 v-else-if="i.state === 8"
                 class=" text-light-50  w-36 p-2 rounded-lg"
                 :class="{
-                  'bg-red-400': currentButton === undefined || currentClickedItem?.date === i.date && (currentButton === 4 || currentButton === 2 || currentButton === 3),
+                  'bg-red-400': currentButton === undefined || currentClickedItem?.date === i.date && (currentButton === 4 || currentButton === 2 || currentButton === 3 || currentButton === 5),
                   'bg-red-50': (currentButton === 4) && currentClickedItem?.date !== i.date,
                 }"
                 @click="itemClicked(i)"
@@ -267,11 +273,14 @@ onMounted(() => {
   </div>
   <div class="flex mt-3 ml-5">
     <resultInfo class="mt--1 mr-5" />
-    <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4" @click="exportToExcel()">
+    <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5" @click="exportToExcel()">
       生成自用表格
     </el-button>
-    <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4" @click="exportToPartA()">
+    <el-button type="primary" :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5" @click="exportToPartA()">
       生成提交表格
+    </el-button>
+    <el-button v-if="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5" type="primary" @click="cancelSelect">
+      取消
     </el-button>
   </div>
   <xt-dialog v-model="timeDivisionDialog" title="分割时间" :show-cancel="false" :show-confirm="false">
@@ -296,7 +305,7 @@ onMounted(() => {
           {{ workTimeCache[0] && workTimeCache[0].workTime ? workTimeCache[0].workTime : '' }}
         </div>
       </el-card>
-      <el-icon v-if="currentButton === 2" size="30" class="w-20 mt-10">
+      <el-icon v-if="currentButton === 2 || currentButton === 5" size="30" class="w-20 mt-10">
         <SvgIcon name="change" />
       </el-icon>
       <el-icon v-if="currentButton === 3 || currentButton === 4" size="30" class="w-20 mt-10">

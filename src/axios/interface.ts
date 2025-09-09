@@ -439,3 +439,13 @@ export function setUnArrayJobWorker(config: any) {
     },
   })
 }
+
+export function changeRestDay(config: any) {
+  return request({
+    url: `/changeRestDay`,
+    method: 'post',
+    data: {
+      ...config,
+    },
+  })
+}
