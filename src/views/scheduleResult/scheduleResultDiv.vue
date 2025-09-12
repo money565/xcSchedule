@@ -18,6 +18,7 @@ import {
   exportToExcel,
   exportToPartA,
   itemClicked,
+  jobHasReplace,
   jobStanderTimeChangeDialog,
   makeScheduleTableTitle,
   perpareDatas,
@@ -160,7 +161,7 @@ onMounted(() => {
                       </div>
                     </template>
                     <div>
-                      <div>
+                      <div v-if="i.mainJob">
                         {{ restShowReplace }}
                       </div>
                       <div>
@@ -169,6 +170,22 @@ onMounted(() => {
                     </div>
                   </el-popover>
                 </div>
+                <el-popover
+                  placement="bottom"
+                  trigger="click"
+                  :disabled="currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5"
+                >
+                  <template #reference>
+                    <div v-if="i.state === 3 && i.mainJob && !jobHasReplace(item.id, i.date)" class="bg-red-400 text-white p-2 rounded-md">
+                      原岗位空缺，请安排工作人员
+                    </div>
+                  </template>
+                  <div>
+                    <el-button type="primary" link @click="arrangeWork(i)">
+                      安排空缺岗位
+                    </el-button>
+                  </div>
+                </el-popover>
               </div>
               <div
                 v-else-if="i.state === 4"

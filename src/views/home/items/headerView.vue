@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAppCacheStore } from '@/stores/appCache'
 import { useUserStore } from '@/stores/counter'
+import updataRecord from './updataRecord.vue/updataRecord.vue'
 
 const acs = useAppCacheStore()
 const acounter = useUserStore()
@@ -18,10 +19,28 @@ const options = [
 
 <template>
   <div>
-    <div class="fixed right-10 top-10 cursor-pointer">
-      <el-icon size="30">
-        <svg-icon name="config" />
-      </el-icon>
+    <div class="fixed right-10 top-10 cursor-pointer w-30 flex">
+      <el-popover
+        class="box-item"
+        title="更新历史记录"
+        placement="bottom"
+        trigger="click"
+        :width="500"
+      >
+        <template #reference>
+          <div class="flex">
+            <el-icon size="30">
+              <svg-icon name="config" />
+            </el-icon>
+            <div class="font-sans font-semibold text-3 ml-2">
+              当前版本：Beta0.8
+            </div>
+          </div>
+        </template>
+        <div>
+          <updataRecord />
+        </div>
+      </el-popover>
     </div>
     <div class="text-center mt-10">
       <div class="text-4xl font-sans font-bold">

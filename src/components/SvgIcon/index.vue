@@ -13,9 +13,11 @@ const symbolId = computed(() => `#${props.perfix}-${props.name}`)
 </script>
 
 <template>
-  <svg class="svg-icon" aria-hidden="true">
-    <use :xlink:href="symbolId" />
-  </svg>
+  <div class="flex">
+    <svg class="svg-icon" aria-hidden="true">
+      <use :xlink:href="symbolId" />
+    </svg>
+  </div>
 </template>
 
 <style scoped>

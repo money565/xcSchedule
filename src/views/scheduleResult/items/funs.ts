@@ -387,6 +387,20 @@ export function closeWorkTimeDate() {
   // tableRefreshKey.value = new Date().getTime()
 }
 
+export function jobHasReplace(jid: number, date: string) {
+  let hasReplace = false
+  for (const i in acs.scheduleResultData) {
+    for (const d in acs.scheduleResultData[i][date]) {
+      if (acs.scheduleResultData[i][date][d].jid) {
+        if (acs.scheduleResultData[i][date][d].jid === jid) {
+          hasReplace = true
+        }
+      }
+    }
+  }
+  return hasReplace
+}
+
 export function showReplace(item: workerCacheOpt) {
   if (item.mainJob) {
     for (const i in acs.scheduleResultData) {
@@ -424,7 +438,7 @@ export function showReplace(item: workerCacheOpt) {
       }
     }
   }
-  restShowReplace.value = '危险！！！该岗位没有员工替岗'
+  restShowReplace.value = '⚠警告！！！该岗位没有员工替岗'
   return null
 }
 
