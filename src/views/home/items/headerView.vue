@@ -33,7 +33,7 @@ const options = [
               <svg-icon name="config" />
             </el-icon>
             <div class="font-sans font-semibold text-3 ml-2">
-              当前版本：Beta0.8
+              当前版本：Beta0.9
             </div>
           </div>
         </template>
