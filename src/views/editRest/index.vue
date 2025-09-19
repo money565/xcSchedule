@@ -140,6 +140,8 @@ function addRestMan(value: any, date: string) {
     }
     else {
       alert(res.result)
+      timeArray.value[date].push(value)
+      queryRefreshKey.value = new Date().getTime()
     }
   })
 }
