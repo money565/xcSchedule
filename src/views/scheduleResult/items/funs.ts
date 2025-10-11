@@ -1,4 +1,4 @@
-import { changeRestDay, changeScheduleResultWorkTime, changeWorkerJobInterface, deleteAdjustWorkerTime, getScheduleResultTotable, giveWorkTimeBlock, setUnArrayJobWorker } from '@/axios/interface'
+import { changeRestDay, changeScheduleResultWorkTime, changeWorkerJobInterface, deleteAdjustWorkerTime, getAllJobsByProject, getScheduleResultTotable, giveWorkTimeBlock, setUnArrayJobWorker } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
 import { DateToStr } from '@/views/editJob/publicData'
 import { saveAs } from 'file-saver'
@@ -264,44 +264,53 @@ export function exportToExcel() {
 }
 
 export function exportToPartA() {
-  acs.dateList.forEach((w: string) => {
-    const temp: any[] = []
-    acs.scheduleResultData.forEach((e: any) => {
-      if (e.id !== '') {
-        const param: any = {
-          楼层: e.area,
-          人数: 1,
-          岗位: e.job,
-          姓名: '',
-          工作时间: e.workTime,
-        }
-        if (e[w][0].state === 2) {
+  getAllJobsByProject(acs.currentProject).then(({ data: res }) => {
+    const jobList = res.result
+    console.log(jobList, acs.scheduleResultData)
+    const workbook = XLSX.utils.book_new()
+    acs.dateList.forEach((w: string) => {
+      const temp: any[] = []
+      jobList.forEach((e: any) => {
+        if (e.id !== '') {
+          const param: any = {
+            楼层: e.area,
+            人数: 1,
+            岗位: e.name,
+            姓名: '',
+            工作时间: e.wt,
+          }
           for (const i in acs.scheduleResultData) {
-            if (e.id === acs.scheduleResultData[i][w][0].jid) {
+            if (acs.scheduleResultData[i][w][0].jid === e.id) {
               param.姓名 = acs.scheduleResultData[i][w][0].workerName
             }
           }
+          // if (e[w][0].state === 2) {
+          //   for (const i in acs.scheduleResultData) {
+          //     if (e.id === acs.scheduleResultData[i][w][0].jid) {
+          //       param.姓名 = acs.scheduleResultData[i][w][0].workerName
+          //     }
+          //   }
+          // }
+          // else {
+          //   if (e[w][0].jid === e[w][0].mainJob) {
+          //     param.姓名 = e[w][0].workerName
+          //   }
+          //   else {
+          //     for (const i in acs.scheduleResultData) {
+          //       if (e.id === acs.scheduleResultData[i][w][0].jid) {
+          //         param.姓名 = acs.scheduleResultData[i][w][0].workerName
+          //       }
+          //     }
+          //   }
+          // }
+          temp.push(param)
         }
-        else {
-          if (e[w][0].jid === e[w][0].mainJob) {
-            param.姓名 = e[w][0].workerName
-          }
-          else {
-            for (const i in acs.scheduleResultData) {
-              if (e.id === acs.scheduleResultData[i][w][0].jid) {
-                param.姓名 = acs.scheduleResultData[i][w][0].workerName
-              }
-            }
-          }
-        }
-        temp.push(param)
-      }
+      })
+      const worksheet = XLSX.utils.json_to_sheet(temp)
+      XLSX.utils.book_append_sheet(workbook, worksheet, w)
     })
-    const worksheet = XLSX.utils.json_to_sheet(temp)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, '数据')
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
-    saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), `${w}表格数据.xlsx`)
+    saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), `${new Date().getTime()}表格数据.xlsx`)
   })
 }
 

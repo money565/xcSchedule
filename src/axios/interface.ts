@@ -449,3 +449,10 @@ export function changeRestDay(config: any) {
     },
   })
 }
+
+export function getAllJobsByProject(pid: number) {
+  return request({
+    url: `/getAllJobsByProject/${pid}`,
+    method: 'get',
+  })
+}
