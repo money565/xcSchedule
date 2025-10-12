@@ -7,7 +7,6 @@ const aconter = useUserStore()
 const vConsole = new VConsole()
 vConsole.setOption({ log: { maxLogNumber: 5000 } })
 onMounted(() => {
-  console.log('登录')
   aconter.login().then(() => {
     console.log(aconter.userInfo)
   })

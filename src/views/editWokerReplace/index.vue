@@ -111,7 +111,6 @@ function upLoadWorkerAssociateToJob() {
 }
 
 function replacementChange(row: replaceOpt) {
-  console.log('要调整的', row)
   if (row.frid && row.firstReplacement) {
     const firstReplacement = row.firstReplacement
     const frid = row.frid

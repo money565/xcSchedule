@@ -67,7 +67,6 @@ function confirmUpLoad() {
     sid: props.item?.sid,
     point: marks[value2.value],
   }
-  console.log(param)
   cutDownJobTime(param).then(() => {
     if (acs.timeRange) {
       const param = {

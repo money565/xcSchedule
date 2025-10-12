@@ -228,7 +228,6 @@ export function exportToExcel() {
   ////////////////////////////////////
   Object.keys(worksheet).forEach((key: string) => {
     if (!key.includes('A') && key !== '') {
-      console.log(key, worksheet[key])
       try {
         worksheet[key].s = {
           alignment: {
@@ -258,7 +257,6 @@ export function exportToExcel() {
   })
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, '数据')
-  console.log()
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
   saveAs(new Blob([excelBuffer], { type: 'application/octet-stream' }), '表格数据.xlsx')
 }
@@ -266,7 +264,6 @@ export function exportToExcel() {
 export function exportToPartA() {
   getAllJobsByProject(acs.currentProject).then(({ data: res }) => {
     const jobList = res.result
-    console.log(jobList, acs.scheduleResultData)
     const workbook = XLSX.utils.book_new()
     acs.dateList.forEach((w: string) => {
       const temp: any[] = []
@@ -619,7 +616,6 @@ export function itemClicked(item: workerCacheOpt) {
 }
 
 export function deleteChangedWorkerHour(sid: number) {
-  console.log('删除调整')
   deleteLoadingState.value = true
   deleteAdjustWorkerTime(sid, acs.currentProject).then(() => {
     init().then(() => {
