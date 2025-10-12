@@ -84,7 +84,7 @@ onMounted(() => {
           <td v-for="(block, page) in acs.dateList" :key="page" class="text-center p-2">
             <div v-for="(i, v) in item[block]" :key="v">
               <div
-                v-if="i.state === 2"
+                v-if="Number(i.state) === 2"
                 class="text-white w-36 p-2 rounded-lg cursor-pointer"
                 :class="{
                   'bg-green-400': currentButton === undefined,
@@ -120,7 +120,7 @@ onMounted(() => {
                   </div>
                 </el-popover>
               </div>
-              <div v-else-if="i.state === 1" class="cursor-pointer">
+              <div v-if="Number(i.state) === 1" class="cursor-pointer">
                 <div>
                   <el-popover
                     placement="bottom"
@@ -140,7 +140,7 @@ onMounted(() => {
                 </div>
               </div>
               <div
-                v-else-if="i.state === 3"
+                v-if="Number(i.state) === 3"
                 class="w-36 p-2 rounded-lg cursor-pointer"
                 :class="{
                   'bg-yellow-300 ': currentButton === undefined || currentClickedItem?.date === i.date && (currentButton === 1 || currentButton === 2 || currentButton === 3 || currentButton === 4 || currentButton === 5),
@@ -188,7 +188,7 @@ onMounted(() => {
                 </el-popover>
               </div>
               <div
-                v-else-if="i.state === 4"
+                v-if="Number(i.state) === 4"
                 class="w-36 p-2 rounded-lg"
                 :class="{
                   'bg-sky-300': currentButton === undefined,
@@ -201,7 +201,7 @@ onMounted(() => {
                 </div>
               </div>
               <div
-                v-else-if="i.state === 5"
+                v-if="i.state === 5"
                 class="w-36 p-2 rounded-lg cursor-pointer"
                 :class="{
                   'bg-red-300 ': currentButton === undefined,
@@ -233,7 +233,7 @@ onMounted(() => {
                 </div>
               </div>
               <div
-                v-else-if="i.state === 7"
+                v-if="Number(i.state) === 7"
                 class="w-36 p-2 rounded-lg"
                 :class="{
                   'bg-indigo-300 ': currentButton === undefined,
@@ -270,7 +270,7 @@ onMounted(() => {
                 </div>
               </div>
               <div
-                v-else-if="i.state === 8"
+                v-if="Number(i.state) === 8"
                 class=" text-light-50  w-36 p-2 rounded-lg"
                 :class="{
                   'bg-red-400': currentButton === undefined || currentClickedItem?.date === i.date && (currentButton === 4 || currentButton === 2 || currentButton === 3 || currentButton === 5),

@@ -270,9 +270,12 @@ export function exportToPartA() {
     const workbook = XLSX.utils.book_new()
     acs.dateList.forEach((w: string) => {
       const temp: any[] = []
-      jobList.forEach((e: any) => {
+      const merges: number[] = []
+      let lastArea = ''
+      jobList.forEach((e: any, index: number) => {
         if (e.id !== '') {
           const param: any = {
+            序号: index + 1,
             楼层: e.area,
             人数: 1,
             岗位: e.name,
@@ -284,29 +287,114 @@ export function exportToPartA() {
               param.姓名 = acs.scheduleResultData[i][w][0].workerName
             }
           }
-          // if (e[w][0].state === 2) {
-          //   for (const i in acs.scheduleResultData) {
-          //     if (e.id === acs.scheduleResultData[i][w][0].jid) {
-          //       param.姓名 = acs.scheduleResultData[i][w][0].workerName
-          //     }
-          //   }
-          // }
-          // else {
-          //   if (e[w][0].jid === e[w][0].mainJob) {
-          //     param.姓名 = e[w][0].workerName
-          //   }
-          //   else {
-          //     for (const i in acs.scheduleResultData) {
-          //       if (e.id === acs.scheduleResultData[i][w][0].jid) {
-          //         param.姓名 = acs.scheduleResultData[i][w][0].workerName
-          //       }
-          //     }
-          //   }
-          // }
           temp.push(param)
+          if (e.area !== lastArea) {
+            merges.push(index + 2)
+          }
+          lastArea = e.area
         }
       })
-      const worksheet = XLSX.utils.json_to_sheet(temp)
+      // 标题单元格合并从0-5
+      const mergeList = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }]
+      for (let x = 0; x < merges.length - 1; x++) {
+        if (x < merges.length - 2) {
+          mergeList.push({
+            s: { r: Number(merges[x]), c: 1 },
+            e: { r: Number(merges[Number(x) + 1] - 1), c: 1 },
+          })
+        }
+      }
+      const commonStyle = {
+        border: {
+          top: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+        },
+        alignment: {
+          horizontal: 'center',
+          vertical: 'center',
+        },
+      }
+      const rowHeight = []
+      const worksheet = XLSX.utils.json_to_sheet([])
+      const mainTitle = [[`群光项目${w}岗位排班表`]]
+      XLSX.utils.sheet_add_aoa(worksheet, mainTitle, { origin: 'A1' })
+      worksheet.A1 = {
+        v: mainTitle,
+        t: 's',
+        s: {
+          font: {
+            name: '微软雅黑',
+            sz: 16,
+            bold: true,
+            color: { rgb: 'FFFFFF' },
+          },
+          fill: {
+            patternType: 'solid',
+            fgColor: { rgb: '4472C4' },
+          },
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+          },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } },
+          },
+        },
+      }
+      XLSX.utils.sheet_add_json(worksheet, temp, { origin: 'A2' })
+      // const worksheet = XLSX.utils.json_to_sheet(temp)
+
+      worksheet['!merges'] = mergeList
+      if (worksheet['!ref']) {
+        const range = XLSX.utils.decode_range(worksheet['!ref'])
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cell_address = { c: C, r: R }
+            const cell_ref = XLSX.utils.encode_cell(cell_address)
+            if (!worksheet[cell_ref])
+              continue
+
+            // 如果单元格还没有样式，先初始化为空对象
+            if (!worksheet[cell_ref].s) {
+              worksheet[cell_ref].s = {}
+            }
+            // 合并样式，确保不覆盖已存在的特定样式（如字体等）
+            worksheet[cell_ref].s = {
+              ...commonStyle,
+              ...worksheet[cell_ref].s,
+              alignment: { // 确保居中对齐被设置
+                ...commonStyle.alignment,
+                ...worksheet[cell_ref].s.alignment,
+              },
+            }
+            rowHeight.push({ hpt: 30 })
+          }
+        }
+      }
+      worksheet['!rows'] = rowHeight
+      worksheet['!cols'] = [
+        { wch: 10 }, // 第一列宽度
+        { wch: 15 }, // 第一列宽度
+        { wch: 12 }, // 第二列宽度
+        { wch: 30 }, // 第三列宽度
+        { wch: 20 }, // 第四列宽度
+        { wch: 30 }, // 第五列宽度
+      ]
+      const titleList = ['A2', 'B2', 'C2', 'D2', 'E2', 'F2']
+      titleList.forEach((cellRef: string | number) => {
+        if (worksheet[cellRef]) {
+          worksheet[cellRef].s = {
+            ...worksheet[cellRef].s,
+            font: { sz: 12, bold: true, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '70AD47' } },
+          }
+        }
+      })
       XLSX.utils.book_append_sheet(workbook, worksheet, w)
     })
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
@@ -531,6 +619,7 @@ export function itemClicked(item: workerCacheOpt) {
 }
 
 export function deleteChangedWorkerHour(sid: number) {
+  console.log('删除调整')
   deleteLoadingState.value = true
   deleteAdjustWorkerTime(sid, acs.currentProject).then(() => {
     init().then(() => {
