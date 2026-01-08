@@ -13,6 +13,7 @@ export const useAppCacheStore = defineStore('appCache', () => {
   const workerPrice = ref()
   const job_leak = ref()
   const worker_leak = ref()
+  const fixedRestEmps = ref<{ link: number, value: string }[]>([])
 
   function getDateRangeArray(start: Date, end: Date, target: string | null = null) {
     const dateArray: any = {}
@@ -62,5 +63,20 @@ export const useAppCacheStore = defineStore('appCache', () => {
       return []
     }
   })
-  return { timeRange, currentProject, rest_workDay, rest_festival, rest_weekend, daysOfAnnualLeave, getDateRangeArray, scheduleResultData, workerHour, workerPrice, job_leak, worker_leak, dateList }
+  return {
+    timeRange,
+    fixedRestEmps,
+    currentProject,
+    rest_workDay,
+    rest_festival,
+    rest_weekend,
+    daysOfAnnualLeave,
+    getDateRangeArray,
+    scheduleResultData,
+    workerHour,
+    workerPrice,
+    job_leak,
+    worker_leak,
+    dateList,
+  }
 })

@@ -456,3 +456,17 @@ export function getAllJobsByProject(pid: number) {
     method: 'get',
   })
 }
+
+export function setFixedRest(wid: number) {
+  return request({
+    url: `/setFixedRest/${wid}`,
+    method: 'get',
+  })
+}
+
+export function unsetFixedRest(wid: number) {
+  return request({
+    url: `/unsetFixedRest/${wid}`,
+    method: 'get',
+  })
+}

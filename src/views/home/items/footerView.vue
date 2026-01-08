@@ -1,14 +1,18 @@
+<!-- eslint-disable no-alert -->
 <script setup lang="ts">
-import { getEditRuleByProject, setRule } from '@/axios/interface'
+import { getEditRuleByProject, setFixedRest, setRule, unsetFixedRest } from '@/axios/interface'
 import { useAppCacheStore } from '@/stores/appCache'
+import autoInputItem from '@/views/editElement/autoInputItem.vue'
 
 const acs = useAppCacheStore()
+const queryRefreshKey = ref(0)
 function init() {
   getEditRuleByProject(acs.currentProject).then(({ data: res }) => {
     acs.rest_workDay = res.result.workDay
     acs.rest_weekend = res.result.weekendDay
     acs.rest_festival = res.result.festival
     acs.daysOfAnnualLeave = res.result.daysOfAnnualLeave
+    acs.fixedRestEmps = res.result.fixedRestList
   })
 }
 
@@ -39,6 +43,31 @@ function restConfig(index: number) {
   })
 }
 
+function addRestMan(value: { link: number, value: string }) {
+  console.log(value)
+  let isin = false
+  for (const i in acs.fixedRestEmps) {
+    if (acs.fixedRestEmps[i].value === value.value) {
+      isin = true
+    }
+  }
+  if (!isin) {
+    setFixedRest(value.link).then(() => {
+      init()
+      queryRefreshKey.value = new Date().getTime()
+    })
+  }
+  else {
+    alert('该人员已添加')
+  }
+}
+
+function deleteFixedEmp(index: number) {
+  unsetFixedRest(index).then(() => {
+    init()
+  })
+}
+
 onMounted(() => {
   init()
 })
@@ -55,8 +84,19 @@ onMounted(() => {
           <div>
             <el-input-number v-model="acs.rest_workDay" :min="1" :max="10" @change="restConfig(1)" />
           </div>
+          <div class="ml-5 mt-1">
+            选择固定休息人员：
+          </div>
+          <div class="ml-3">
+            <autoInputItem :key="queryRefreshKey" title="" target="worker" placeholder="选择要调休的员工" @sent-mesg="addRestMan" />
+          </div>
+          <div class="flex gap-4 mt-1 ml-3 w-80 overflow-auto">
+            <el-tag v-for="item in acs.fixedRestEmps" :key="item.link" type="primary" class="cursor-pointer" @click="deleteFixedEmp(item.link)">
+              {{ item.value }}
+            </el-tag>
+          </div>
         </div>
-        <div class="flex mt-3">
+        <div class="flex mt-5">
           <div class="w-40">
             周末调休人数：
           </div>
@@ -65,7 +105,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex mt-3">
+        <div class="flex mt-5">
           <div class="w-40">
             节日调休人数：
           </div>
@@ -74,7 +114,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex mt-3">
+        <div class="flex mt-5">
           <div class="w-40">
             员工月休天数：
           </div>

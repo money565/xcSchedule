@@ -75,6 +75,7 @@ function init() {
       pid: acs.currentProject,
       start: DateToStr(date1),
       end: DateToStr(acs.timeRange[1]),
+      selectDate: [acs.timeRange[0], acs.timeRange[1]],
     }
     getWorkerRestByTimerange(params).then(({ data: res }) => {
       for (const i in res.result) {
